@@ -6,13 +6,13 @@ SPA de **Kitch**, menú digital y pedidos desde la mesa (TP Integrador · Progra
 
 ## Arranque
 
-Primero levantá el backend y los emuladores (ver el README de `prog4-tp-int-be`). Después:
+Primero levantá el backend (`npm start` en `prog4-tp-int-be`). Después, acá:
 
 ```bash
-npm install
-cp .env.example .env   # los valores por defecto apuntan a localhost
-npm start              # Vite en http://localhost:5173
+npm start   # crea el .env si falta, instala dependencias y levanta Vite en http://localhost:5173
 ```
+
+Funciona igual en macOS, Windows y Linux (Node ≥ 20). Si el backend no responde, avisa, pero arranca igual.
 
 ## Vistas
 
@@ -29,6 +29,6 @@ Para probar la vista cliente sin celular: en **Admin → Mesas → Ver QR** est�
 
 | Script | Qué hace |
 |---|---|
-| `npm start` | Instala dependencias si faltan y levanta Vite |
+| `npm start` | Crea el `.env` si falta, instala dependencias y levanta Vite |
 | `npm run build` | Type-check + build de producción |
 | `npm run lint` | oxlint |
