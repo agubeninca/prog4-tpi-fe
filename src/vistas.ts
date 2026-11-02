@@ -27,3 +27,6 @@ export const ReviewListView = lazy(() => import('./modules/Review/views/ReviewLi
 export const UsuarioListView = lazy(() =>
   import('./modules/Usuario/views/UsuarioListView').then((m) => ({ default: m.UsuarioListView })),
 );
+export const ClienteListView = lazy(() =>
+  import('./modules/Cliente/views/ClienteListView').then((m) => ({ default: m.ClienteListView })),
+);

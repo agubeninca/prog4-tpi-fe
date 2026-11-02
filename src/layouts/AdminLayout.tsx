@@ -6,6 +6,7 @@ import {
   QrcodeOutlined,
   ShoppingOutlined,
   StarOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import { useState } from 'react';
@@ -18,6 +19,7 @@ const menuItems = [
   { key: '/admin/categorias', icon: <AppstoreOutlined />, label: <Link to="/admin/categorias">Categorías</Link> },
   { key: '/admin/productos', icon: <ShoppingOutlined />, label: <Link to="/admin/productos">Productos</Link> },
   { key: '/admin/mesas', icon: <QrcodeOutlined />, label: <Link to="/admin/mesas">Mesas</Link> },
+  { key: '/admin/clientes', icon: <TeamOutlined />, label: <Link to="/admin/clientes">Clientes</Link> },
   { key: '/admin/reviews', icon: <StarOutlined />, label: <Link to="/admin/reviews">Reviews</Link> },
   { key: '/admin/usuarios', icon: <IdcardOutlined />, label: <Link to="/admin/usuarios">Usuarios</Link> },
   { key: '/cocina', icon: <FireOutlined />, label: <Link to="/cocina">Panel de cocina</Link> },

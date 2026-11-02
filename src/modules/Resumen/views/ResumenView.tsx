@@ -5,8 +5,12 @@ import dayjs, { type Dayjs } from 'dayjs';
 import { getErrorMessage } from '../../../shared/api';
 import { formatearMoneda } from '../../../shared/moneda';
 import { EstadoPedidoTag } from '../../Pedido/components/EstadoPedidoTag';
+import { EstadoStatCard } from '../components/EstadoStatCard';
 import { pedidoService, type DetallePedido, type EstadoPedido, type Pedido } from '../../Pedido/services/pedido.service';
 import { reporteService, type VentasDelDia } from '../services/reporte.service';
+
+/** Orden del ciclo de vida del pedido. */
+const ORDEN_ESTADOS: EstadoPedido[] = ['PENDIENTE', 'EN_PREPARACION', 'SERVIDO', 'CANCELADO'];
 
 export function ResumenView() {
   const [fecha, setFecha] = useState<Dayjs>(dayjs());
@@ -55,37 +59,27 @@ export function ResumenView() {
         </Space>
       </Space>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} md={12} lg={8}>
-          <Card>
+      {/* Las cards de cada fila se estiran a la misma altura (align="stretch" + height 100%). */}
+      <Row gutter={[16, 16]} align="stretch" style={{ marginBottom: 24 }}>
+        <Col xs={24} lg={8}>
+          <Card style={{ height: '100%', borderTop: '3px solid #389e0d' }}>
             <Statistic
               title={esHoy ? 'Vendido hoy' : `Vendido el ${fecha.format('DD/MM/YYYY')}`}
               value={ventas ? formatearMoneda(ventas.total) : '—'}
               loading={loading && !ventas}
-              styles={{ content: { color: '#389e0d' } }}
+              styles={{ content: { color: '#389e0d', fontSize: 32 } }}
             />
             <Typography.Text type="secondary">Suma de los pedidos servidos</Typography.Text>
           </Card>
         </Col>
-        <Col xs={12} md={6} lg={4}>
-          <Card>
-            <Statistic title="Servidos" value={porEstado('SERVIDO')} />
-          </Card>
-        </Col>
-        <Col xs={12} md={6} lg={4}>
-          <Card>
-            <Statistic title="Pendientes" value={porEstado('PENDIENTE')} />
-          </Card>
-        </Col>
-        <Col xs={12} md={6} lg={4}>
-          <Card>
-            <Statistic title="En preparación" value={porEstado('EN_PREPARACION')} />
-          </Card>
-        </Col>
-        <Col xs={12} md={6} lg={4}>
-          <Card>
-            <Statistic title="Cancelados" value={porEstado('CANCELADO')} />
-          </Card>
+        <Col xs={24} lg={16}>
+          <Row gutter={[16, 16]} align="stretch" style={{ height: '100%' }}>
+            {ORDEN_ESTADOS.map((estado) => (
+              <Col key={estado} xs={24} sm={12}>
+                <EstadoStatCard estado={estado} cantidad={porEstado(estado)} loading={loading && !ventas} />
+              </Col>
+            ))}
+          </Row>
         </Col>
       </Row>
 

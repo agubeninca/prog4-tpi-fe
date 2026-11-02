@@ -15,6 +15,7 @@ import { RequiereIdentificacion } from './modules/ClienteMesa/components/Requier
 import {
   AdminLayout,
   CarritoView,
+  ClienteListView,
   CategoriaListView,
   CocinaLayout,
   IdentificacionView,
@@ -79,6 +80,7 @@ ReactDOM.createRoot(root).render(
               <Route path="categorias" element={<CategoriaListView />} />
               <Route path="productos" element={<ProductoListView />} />
               <Route path="mesas" element={<MesaListView />} />
+              <Route path="clientes" element={<ClienteListView />} />
               <Route path="reviews" element={<ReviewListView />} />
               <Route path="usuarios" element={<UsuarioListView />} />
             </Route>

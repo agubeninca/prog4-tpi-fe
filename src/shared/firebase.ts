@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { AUTH_EMULATOR_URL, FIRESTORE_EMULATOR_HOST, FIRESTORE_EMULATOR_PORT, STORAGE_EMULATOR_URL } from './entorno';
 
 const app = initializeApp({
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -8,14 +9,10 @@ const app = initializeApp({
 });
 
 export const auth = getAuth(app);
-connectAuthEmulator(auth, import.meta.env.VITE_AUTH_EMULATOR_URL, { disableWarnings: true });
+connectAuthEmulator(auth, AUTH_EMULATOR_URL, { disableWarnings: true });
 
 export const db = getFirestore(app);
-connectFirestoreEmulator(
-  db,
-  import.meta.env.VITE_FIRESTORE_EMULATOR_HOST,
-  Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT),
-);
+connectFirestoreEmulator(db, FIRESTORE_EMULATOR_HOST, FIRESTORE_EMULATOR_PORT);
 
 /**
  * URL pública de una imagen del emulador de Storage.
@@ -25,6 +22,6 @@ export function urlImagen(rutaImagen: string | null | undefined, version?: strin
   if (!rutaImagen) {
     return undefined;
   }
-  const url = `${import.meta.env.VITE_STORAGE_EMULATOR_URL}/${encodeURIComponent(rutaImagen)}?alt=media`;
+  const url = `${STORAGE_EMULATOR_URL}/${encodeURIComponent(rutaImagen)}?alt=media`;
   return version ? `${url}&v=${encodeURIComponent(version)}` : url;
 }

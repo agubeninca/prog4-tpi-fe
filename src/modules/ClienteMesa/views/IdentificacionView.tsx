@@ -7,6 +7,8 @@ import { useCarritoStore } from '../../../stores/carrito.store';
 import { useSesionClienteStore } from '../../../stores/sesionCliente.store';
 import { clienteMesaService, type ClienteSesion, type MesaPublica } from '../services/clienteMesa.service';
 
+const MINIMO_NOMBRE = 3;
+
 export function IdentificacionView() {
   const { hash = '' } = useParams();
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export function IdentificacionView() {
         ¡Bienvenido! · Mesa {mesa.numero_mesa}
       </Typography.Title>
       <Typography.Paragraph type="secondary">
-        Para ver el menú y hacer tu pedido, ingresá tu DNI y tu nombre.
+        Para ver el menú y hacer tu pedido, ingresá tu DNI y tu nombre y apellido.
       </Typography.Paragraph>
       <Form
         layout="vertical"
@@ -90,10 +92,19 @@ export function IdentificacionView() {
         </Form.Item>
         <Form.Item
           name="nombre"
-          label="Nombre"
-          rules={[{ required: true, whitespace: true, message: 'Ingresá tu nombre' }]}
+          label="Nombre y apellido"
+          rules={[
+            { required: true, whitespace: true, message: 'Ingresá tu nombre y apellido' },
+            {
+              // Se cuenta sin espacios al principio y al final, igual que en el backend.
+              validator: (_, valor?: string) =>
+                !valor?.trim() || valor.trim().length >= MINIMO_NOMBRE
+                  ? Promise.resolve()
+                  : Promise.reject(new Error(`Mínimo ${MINIMO_NOMBRE} caracteres`)),
+            },
+          ]}
         >
-          <Input maxLength={100} autoComplete="given-name" placeholder="¿Cómo te llamamos?" />
+          <Input maxLength={100} autoComplete="name" placeholder="Ej.: Ana Pérez" />
         </Form.Item>
         {errorEnvio && (
           <Typography.Paragraph type="danger" style={{ marginTop: -8 }}>

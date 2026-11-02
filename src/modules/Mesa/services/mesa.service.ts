@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import { PUBLIC_APP_URL } from '../../../shared/entorno';
 
 export interface Mesa {
   id_mesa: number;
@@ -17,7 +18,7 @@ export interface MesaInput {
 
 /** URL que se codifica en el QR impreso de la mesa (RF-02). */
 export function urlMesa(hashCodigoQr: string) {
-  return `${import.meta.env.VITE_PUBLIC_APP_URL}/m/${hashCodigoQr}`;
+  return `${PUBLIC_APP_URL}/m/${hashCodigoQr}`;
 }
 
 export const mesaService = {

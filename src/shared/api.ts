@@ -1,9 +1,10 @@
 import axios from 'axios';
 import { signOut } from 'firebase/auth';
+import { API_URL } from './entorno';
 import { auth } from './firebase';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: API_URL,
 });
 
 // Si hay alguien del personal logueado, cada request lleva su ID token de Firebase.

@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { DownloadOutlined, ExportOutlined } from '@ant-design/icons';
-import { Button, Flex, Modal, QRCode, Space, Typography } from 'antd';
+import { Alert, Button, Flex, Modal, QRCode, Space, Typography } from 'antd';
+import { QR_SOLO_LOCAL } from '../../../shared/entorno';
 import { urlMesa, type Mesa } from '../services/mesa.service';
 
 interface MesaQrModalProps {
@@ -27,6 +28,14 @@ export function MesaQrModal({ mesa, onClose }: MesaQrModalProps) {
         <div ref={contenedorQr}>
           <QRCode value={url} type="canvas" size={240} bgColor="#ffffff" status={mesa?.activa ? 'active' : 'expired'} />
         </div>
+        {QR_SOLO_LOCAL && (
+          <Alert
+            type="warning"
+            showIcon
+            title="Este QR apunta a esta computadora (localhost): un celular no lo va a poder abrir."
+            description="Levantá el frontend con npm start conectado a una red WiFi para que el QR use la IP de la red."
+          />
+        )}
         {!mesa?.activa && (
           <Typography.Text type="warning">La mesa está deshabilitada: el QR no permite hacer pedidos.</Typography.Text>
         )}
