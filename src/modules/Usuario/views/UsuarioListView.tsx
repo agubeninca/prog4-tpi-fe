@@ -72,7 +72,7 @@ export function UsuarioListView() {
         scroll={{ x: 'max-content' }}
         columns={[
           { title: 'Nombre', dataIndex: 'nombre', width: 200 },
-          { title: 'Email', dataIndex: 'email', width: 240 },
+          { title: 'Usuario', dataIndex: 'nombre_usuario', width: 160 },
           {
             title: 'Rol',
             dataIndex: 'rol',
@@ -108,7 +108,7 @@ export function UsuarioListView() {
         <UsuarioForm
           key={editing?.id_usuario ?? 'new'}
           editando={!!editing}
-          initialValues={editing ? { email: editing.email, nombre: editing.nombre, rol: editing.rol } : undefined}
+          initialValues={editing ? { nombre_usuario: editing.nombre_usuario, nombre: editing.nombre, rol: editing.rol } : undefined}
           onSubmit={handleSubmit}
           loading={saving}
         />

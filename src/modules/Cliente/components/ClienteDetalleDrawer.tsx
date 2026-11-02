@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
+import { DeleteOutlined } from '@ant-design/icons';
 import {
+  Button,
   Card,
   Col,
   Descriptions,
   Drawer,
   Empty,
   Flex,
+  Popconfirm,
   Rate,
   Result,
   Row,
@@ -14,7 +17,9 @@ import {
   Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
+  message,
 } from 'antd';
 import dayjs from 'dayjs';
 import { getErrorMessage } from '../../../shared/api';
@@ -38,9 +43,11 @@ interface ClienteDetalleDrawerProps {
   /** DNI del cliente a mostrar; null cierra el drawer. */
   dni: string | null;
   onClose: () => void;
+  /** Se llama después de eliminar al cliente o de cambiarle el nombre (para refrescar el listado). */
+  onCambio: () => void;
 }
 
-export function ClienteDetalleDrawer({ dni, onClose }: ClienteDetalleDrawerProps) {
+export function ClienteDetalleDrawer({ dni, onClose, onCambio }: ClienteDetalleDrawerProps) {
   const [resultado, setResultado] = useState<{ dni: string; detalle?: ClienteDetalle; error?: string } | null>(null);
 
   useEffect(() => {
@@ -59,6 +66,42 @@ export function ClienteDetalleDrawer({ dni, onClose }: ClienteDetalleDrawerProps
   const cargando = !!dni && resultado?.dni !== dni;
   const detalle = resultado?.dni === dni ? resultado.detalle : undefined;
   const error = resultado?.dni === dni ? resultado.error : undefined;
+  const [eliminando, setEliminando] = useState(false);
+
+  const eliminar = async () => {
+    if (!detalle) return;
+    setEliminando(true);
+    try {
+      await clienteService.remove(detalle.dni);
+      message.success(`Cliente ${detalle.nombre} eliminado`);
+      onCambio();
+      onClose();
+    } catch (err) {
+      message.error(getErrorMessage(err));
+    } finally {
+      setEliminando(false);
+    }
+  };
+
+  const tienePedidos = (detalle?.metricas.cantidad_pedidos ?? 0) > 0;
+
+  const renombrar = async (nombre: string) => {
+    if (!detalle) return;
+    const limpio = nombre.trim();
+    if (limpio === detalle.nombre) return;
+    if (limpio.length < 3) {
+      message.error('El nombre y apellido debe tener al menos 3 caracteres');
+      return;
+    }
+    try {
+      const actualizado = await clienteService.actualizarNombre(detalle.dni, limpio);
+      setResultado({ dni: detalle.dni, detalle: { ...detalle, nombre: actualizado.nombre } });
+      message.success('Nombre actualizado');
+      onCambio();
+    } catch (err) {
+      message.error(getErrorMessage(err));
+    }
+  };
 
   return (
     <Drawer
@@ -71,12 +114,36 @@ export function ClienteDetalleDrawer({ dni, onClose }: ClienteDetalleDrawerProps
     >
       {cargando && <Skeleton active paragraph={{ rows: 10 }} />}
       {error && <Result status="error" title="No se pudo cargar el cliente" subTitle={error} />}
-      {detalle && <FichaCliente detalle={detalle} />}
+      {detalle && <FichaCliente detalle={detalle} onRenombrar={renombrar} />}
+      {detalle && (
+        <Flex justify="flex-end" style={{ marginTop: 24 }}>
+          {tienePedidos ? (
+            <Tooltip title="Tiene pedidos: son parte del historial de ventas, por eso no se puede eliminar.">
+              <Button danger icon={<DeleteOutlined />} disabled>
+                Eliminar cliente
+              </Button>
+            </Tooltip>
+          ) : (
+            <Popconfirm
+              title="¿Eliminar este cliente?"
+              description="No tiene pedidos. Si vuelve a identificarse en una mesa, se registra de nuevo."
+              okText="Eliminar"
+              okButtonProps={{ danger: true }}
+              cancelText="Cancelar"
+              onConfirm={eliminar}
+            >
+              <Button danger icon={<DeleteOutlined />} loading={eliminando}>
+                Eliminar cliente
+              </Button>
+            </Popconfirm>
+          )}
+        </Flex>
+      )}
     </Drawer>
   );
 }
 
-function FichaCliente({ detalle }: { detalle: ClienteDetalle }) {
+function FichaCliente({ detalle, onRenombrar }: { detalle: ClienteDetalle; onRenombrar: (nombre: string) => void }) {
   const { metricas } = detalle;
 
   return (
@@ -117,7 +184,16 @@ function FichaCliente({ detalle }: { detalle: ClienteDetalle }) {
         column={{ xs: 1, sm: 2 }}
         items={[
           { key: 'dni', label: 'DNI', children: formatearDni(detalle.dni) },
-          { key: 'nombre', label: 'Nombre y apellido', children: detalle.nombre },
+          {
+            key: 'nombre',
+            label: 'Nombre y apellido',
+            // Desde la mesa no se puede cambiar el nombre de un DNI ya registrado: lo corrige el admin acá.
+            children: (
+              <Typography.Text editable={{ onChange: onRenombrar, maxLength: 100, tooltip: 'Corregir nombre' }}>
+                {detalle.nombre}
+              </Typography.Text>
+            ),
+          },
           { key: 'alta', label: 'Cliente desde', children: fechaHora(detalle.fecha_creacion) },
           { key: 'ultima', label: 'Última visita', children: fechaHora(metricas.ultima_visita) },
           { key: 'primera', label: 'Primer pedido', children: fechaHora(metricas.primera_visita) },

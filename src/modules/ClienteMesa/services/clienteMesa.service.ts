@@ -9,7 +9,20 @@ export interface MesaPublica {
 
 export interface ClienteSesion {
   dni: string;
-  nombre: string;
+  /** null si el DNI ya estaba registrado: por privacidad, el nombre completo no se devuelve a la mesa. */
+  nombre: string | null;
+}
+
+export interface ConsultaDni {
+  registrado: boolean;
+  /** "A*** B***": para que la persona se reconozca sin exponer el nombre de otros. */
+  nombre_enmascarado: string | null;
+}
+
+export interface Identificacion {
+  dni: string;
+  /** Solo al registrarse por primera vez. */
+  nombre?: string;
 }
 
 export interface ProductoMenu {
@@ -35,7 +48,8 @@ export interface PedidoCliente extends Pedido {
 export interface NuevoPedido {
   hash_codigo_qr: string;
   dni: string;
-  nombre: string;
+  /** Solo hace falta si el cliente es nuevo; si ya existe, se ignora. */
+  nombre?: string;
   items: { id_producto: number; cantidad: number }[];
 }
 
@@ -48,8 +62,9 @@ export interface NuevaReview {
 // Endpoints públicos: la Vista Cliente no tiene login (RF-02).
 export const clienteMesaService = {
   getMesa: (hash: string) => api.get<MesaPublica>(`/mesas/qr/${hash}`).then((res) => res.data),
-  identificar: (cliente: ClienteSesion) =>
-    api.post<ClienteSesion>('/clientes/identificar', cliente).then((res) => res.data),
+  consultarDni: (dni: string) => api.get<ConsultaDni>(`/clientes/consulta/${dni}`).then((res) => res.data),
+  identificar: (datos: Identificacion) =>
+    api.post<ClienteSesion & { registrado: boolean }>('/clientes/identificar', datos).then((res) => res.data),
   getMenu: () => api.get<CategoriaMenu[]>('/menu').then((res) => res.data),
   crearPedido: (pedido: NuevoPedido) => api.post<Pedido>('/pedidos', pedido).then((res) => res.data),
   getPedido: (id: number, dni: string) =>

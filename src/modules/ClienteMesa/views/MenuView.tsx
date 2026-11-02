@@ -41,7 +41,7 @@ export function MenuView() {
   return (
     <div style={{ paddingBottom: 80 }}>
       <Typography.Title level={4} style={{ marginBottom: 4 }}>
-        Hola, {cliente?.nombre}
+        {cliente?.nombre ? `Hola, ${cliente.nombre}` : '¡Hola de nuevo!'}
       </Typography.Title>
       <Typography.Paragraph type="secondary">Elegí lo que quieras pedir.</Typography.Paragraph>
       {ultimoPedido && (

@@ -26,7 +26,7 @@ export function CarritoView() {
       const pedido = await clienteMesaService.crearPedido({
         hash_codigo_qr: hash,
         dni: cliente.dni,
-        nombre: cliente.nombre,
+        nombre: cliente.nombre ?? undefined,
         items: items.map((item) => ({ id_producto: item.producto.id_producto, cantidad: item.cantidad })),
       });
       vaciar();

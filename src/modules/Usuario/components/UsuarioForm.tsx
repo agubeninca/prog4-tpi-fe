@@ -1,5 +1,11 @@
 import { Button, Form, Input, Select } from 'antd';
-import { ETIQUETA_ROL, type UsuarioRol } from '../../Auth/services/auth.service';
+import {
+  ETIQUETA_ROL,
+  NOMBRE_USUARIO_MENSAJE,
+  NOMBRE_USUARIO_REGEX,
+  normalizarNombreUsuario,
+  type UsuarioRol,
+} from '../../Auth/services/auth.service';
 import type { UsuarioInput } from '../services/usuario.service';
 
 interface UsuarioFormProps {
@@ -15,20 +21,22 @@ export function UsuarioForm({ initialValues, editando, onSubmit, loading }: Usua
   return (
     <Form layout="vertical" initialValues={initialValues ?? { rol: 'COCINA' }} onFinish={onSubmit}>
       <Form.Item
-        name="email"
-        label="Email"
+        name="nombre_usuario"
+        label="Usuario"
+        normalize={(valor: string) => normalizarNombreUsuario(valor ?? '')}
         rules={[
-          { required: true, message: 'Ingresá el email' },
-          { type: 'email', message: 'El email no es válido' },
+          { required: true, message: 'Ingresá el usuario' },
+          { pattern: NOMBRE_USUARIO_REGEX, message: NOMBRE_USUARIO_MENSAJE },
         ]}
-        extra={editando ? 'El email no se puede modificar.' : undefined}
+        extra={editando ? 'El usuario no se puede modificar.' : 'Con esto se ingresa al sistema. Ej.: cocina1, jperez o un legajo.'}
       >
-        <Input maxLength={150} disabled={editando} autoComplete="off" />
+        <Input maxLength={30} disabled={editando} autoComplete="off" autoCapitalize="none" spellCheck={false} />
       </Form.Item>
       <Form.Item
         name="nombre"
         label="Nombre"
         rules={[{ required: true, whitespace: true, message: 'Ingresá el nombre' }]}
+        extra="Se muestra en el panel. Ej.: Juan Pérez o Turno mañana."
       >
         <Input maxLength={100} />
       </Form.Item>

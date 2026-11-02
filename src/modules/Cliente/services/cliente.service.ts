@@ -53,4 +53,9 @@ export interface ClienteDetalle {
 export const clienteService = {
   getAll: (q?: string) => api.get<ClienteResumen[]>('/clientes', { params: { q: q || undefined } }).then((res) => res.data),
   getOne: (dni: string) => api.get<ClienteDetalle>(`/clientes/${dni}`).then((res) => res.data),
+  /** El admin corrige el nombre (desde la mesa no se puede cambiar). */
+  actualizarNombre: (dni: string, nombre: string) =>
+    api.patch<ClienteResumen>(`/clientes/${dni}`, { nombre }).then((res) => res.data),
+  /** Solo clientes sin pedidos: los que tienen pedidos son parte del historial de ventas. */
+  remove: (dni: string) => api.delete(`/clientes/${dni}`),
 };

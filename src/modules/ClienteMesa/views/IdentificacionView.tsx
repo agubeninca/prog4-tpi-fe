@@ -1,23 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Form, Input, Result, Spin, Typography } from 'antd';
+import { CheckOutlined, UserOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Flex, Form, Input, Result, Spin, Typography } from 'antd';
 import { useNavigate, useParams } from 'react-router';
 import { getErrorMessage } from '../../../shared/api';
 import { limpiarDni } from '../../../shared/dni';
 import { useCarritoStore } from '../../../stores/carrito.store';
 import { useSesionClienteStore } from '../../../stores/sesionCliente.store';
-import { clienteMesaService, type ClienteSesion, type MesaPublica } from '../services/clienteMesa.service';
+import {
+  clienteMesaService,
+  type ConsultaDni,
+  type Identificacion,
+  type MesaPublica,
+} from '../services/clienteMesa.service';
 
 const MINIMO_NOMBRE = 3;
+const DNI_VALIDO = /^\d{7,8}$/;
+
+interface FormularioIdentificacion {
+  dni: string;
+  nombre?: string;
+}
 
 export function IdentificacionView() {
   const { hash = '' } = useParams();
   const navigate = useNavigate();
   const { cliente, iniciarMesa, identificar } = useSesionClienteStore();
   const vaciarCarrito = useCarritoStore((state) => state.vaciar);
+  const [form] = Form.useForm<FormularioIdentificacion>();
+  const dniEscrito = Form.useWatch('dni', form);
   const [mesa, setMesa] = useState<MesaPublica | null>(null);
   const [errorMesa, setErrorMesa] = useState<string | null>(null);
+  const [consulta, setConsulta] = useState<(ConsultaDni & { dni: string }) | null>(null);
+  const [consultando, setConsultando] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   // RF-02: la mesa se identifica a partir del QR escaneado.
   useEffect(() => {
@@ -32,18 +48,54 @@ export function IdentificacionView() {
       .catch((error: unknown) => setErrorMesa(getErrorMessage(error)));
   }, [hash, iniciarMesa, vaciarCarrito]);
 
-  const handleSubmit = async (datos: ClienteSesion) => {
-    setEnviando(true);
-    setErrorEnvio(null);
+  // La consulta vale solo para el DNI que está escrito: si lo cambia, se vuelve a preguntar.
+  const consultaActual = consulta && consulta.dni === dniEscrito ? consulta : null;
+  const yaRegistrado = consultaActual?.registrado === true;
+
+  /** Al terminar de escribir el DNI (pasa al campo del nombre): ¿ya está registrado? */
+  const consultarDni = async () => {
+    const dni: string = form.getFieldValue('dni') ?? '';
+    if (!DNI_VALIDO.test(dni)) return null;
+    if (consulta?.dni === dni) return consulta;
+    setConsultando(true);
+    setAviso(null);
     try {
-      const registrado = await clienteMesaService.identificar({ dni: datos.dni, nombre: datos.nombre.trim() });
-      identificar({ dni: registrado.dni, nombre: registrado.nombre });
+      const resultado = { dni, ...(await clienteMesaService.consultarDni(dni)) };
+      setConsulta(resultado);
+      return resultado;
+    } catch (error) {
+      setAviso(getErrorMessage(error));
+      return null;
+    } finally {
+      setConsultando(false);
+    }
+  };
+
+  const entrar = async (datos: Identificacion) => {
+    setEnviando(true);
+    setAviso(null);
+    try {
+      const respuesta = await clienteMesaService.identificar(datos);
+      identificar({ dni: respuesta.dni, nombre: respuesta.nombre });
       navigate(`/m/${hash}/menu`);
     } catch (error) {
-      setErrorEnvio(getErrorMessage(error));
+      setAviso(getErrorMessage(error));
     } finally {
       setEnviando(false);
     }
+  };
+
+  const handleSubmit = async ({ dni, nombre }: FormularioIdentificacion) => {
+    // Si apretó "Ver el menú" sin salir del campo DNI, primero se consulta.
+    const resultado = await consultarDni();
+    if (resultado?.registrado) return; // aparece la pregunta "¿Sos ...?"
+    await entrar({ dni, nombre: nombre?.trim() });
+  };
+
+  const noSoyYo = () => {
+    setConsulta(null);
+    form.setFieldValue('dni', '');
+    setAviso('Revisá el DNI: ese ya está registrado a nombre de otra persona. Si es el tuyo y tu nombre quedó mal, pedile al personal que lo corrija.');
   };
 
   if (errorMesa) {
@@ -73,10 +125,14 @@ export function IdentificacionView() {
         Para ver el menú y hacer tu pedido, ingresá tu DNI y tu nombre y apellido.
       </Typography.Paragraph>
       <Form
+        form={form}
         layout="vertical"
         size="large"
-        initialValues={cliente ?? undefined}
+        initialValues={{ dni: cliente?.dni }}
         onFinish={handleSubmit}
+        // Si apretó Enter sin salir del DNI, la validación falla por el nombre vacío:
+        // igual se consulta el DNI, y si ya está registrado aparece la pregunta en lugar del error.
+        onFinishFailed={() => void consultarDni()}
         requiredMark={false}
       >
         <Form.Item
@@ -85,35 +141,75 @@ export function IdentificacionView() {
           normalize={limpiarDni}
           rules={[
             { required: true, message: 'Ingresá tu DNI' },
-            { pattern: /^\d{7,8}$/, message: 'El DNI tiene 7 u 8 números' },
+            { pattern: DNI_VALIDO, message: 'El DNI tiene 7 u 8 números' },
           ]}
         >
-          <Input inputMode="numeric" autoComplete="off" placeholder="Sin puntos" />
+          <Input
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="Sin puntos"
+            onBlur={() => void consultarDni()}
+            suffix={consultando ? <Spin size="small" /> : <span />}
+          />
         </Form.Item>
-        <Form.Item
-          name="nombre"
-          label="Nombre y apellido"
-          rules={[
-            { required: true, whitespace: true, message: 'Ingresá tu nombre y apellido' },
-            {
-              // Se cuenta sin espacios al principio y al final, igual que en el backend.
-              validator: (_, valor?: string) =>
-                !valor?.trim() || valor.trim().length >= MINIMO_NOMBRE
-                  ? Promise.resolve()
-                  : Promise.reject(new Error(`Mínimo ${MINIMO_NOMBRE} caracteres`)),
-            },
-          ]}
-        >
-          <Input maxLength={100} autoComplete="name" placeholder="Ej.: Ana Pérez" />
-        </Form.Item>
-        {errorEnvio && (
+
+        {yaRegistrado ? (
+          // DNI ya registrado: se confirma la identidad en vez de volver a escribir (y pisar) el nombre.
+          <Alert
+            type="info"
+            showIcon
+            icon={<UserOutlined />}
+            style={{ marginBottom: 24 }}
+            title={
+              <span>
+                Este DNI ya está registrado. ¿Sos <strong>{consultaActual?.nombre_enmascarado}</strong>?
+              </span>
+            }
+            description={
+              <Flex gap={8} wrap style={{ marginTop: 12 }}>
+                <Button
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  loading={enviando}
+                  onClick={() => void entrar({ dni: consultaActual!.dni })}
+                >
+                  Sí, soy yo
+                </Button>
+                <Button onClick={noSoyYo} disabled={enviando}>
+                  No, no soy yo
+                </Button>
+              </Flex>
+            }
+          />
+        ) : (
+          <Form.Item
+            name="nombre"
+            label="Nombre y apellido"
+            rules={[
+              { required: true, whitespace: true, message: 'Ingresá tu nombre y apellido' },
+              {
+                // Se cuenta sin espacios al principio y al final, igual que en el backend.
+                validator: (_, valor?: string) =>
+                  !valor?.trim() || valor.trim().length >= MINIMO_NOMBRE
+                    ? Promise.resolve()
+                    : Promise.reject(new Error(`Mínimo ${MINIMO_NOMBRE} caracteres`)),
+              },
+            ]}
+          >
+            <Input maxLength={100} autoComplete="name" placeholder="Ej.: Ana Pérez" />
+          </Form.Item>
+        )}
+
+        {aviso && (
           <Typography.Paragraph type="danger" style={{ marginTop: -8 }}>
-            {errorEnvio}
+            {aviso}
           </Typography.Paragraph>
         )}
-        <Button type="primary" htmlType="submit" block loading={enviando}>
-          Ver el menú
-        </Button>
+        {!yaRegistrado && (
+          <Button type="primary" htmlType="submit" block loading={enviando || consultando}>
+            Ver el menú
+          </Button>
+        )}
       </Form>
     </Card>
   );

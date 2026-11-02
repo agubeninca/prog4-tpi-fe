@@ -1,21 +1,21 @@
 import { create } from 'zustand';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../shared/firebase';
-import { authService, type UsuarioSesion } from '../modules/Auth/services/auth.service';
+import { authService, emailInterno, type UsuarioSesion } from '../modules/Auth/services/auth.service';
 
 interface AuthState {
   usuario: UsuarioSesion | null;
   /** false hasta que Firebase informa si hay una sesión guardada (evita redirigir al login antes de tiempo). */
   inicializado: boolean;
-  login: (email: string, password: string) => Promise<UsuarioSesion>;
+  login: (nombreUsuario: string, password: string) => Promise<UsuarioSesion>;
   logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   usuario: null,
   inicializado: false,
-  login: async (email, password) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  login: async (nombreUsuario, password) => {
+    await signInWithEmailAndPassword(auth, emailInterno(nombreUsuario), password);
     try {
       const usuario = await authService.me();
       set({ usuario, inicializado: true });

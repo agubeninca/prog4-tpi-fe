@@ -116,7 +116,11 @@ export function ClienteListView() {
           },
         ]}
       />
-      <ClienteDetalleDrawer dni={seleccionado} onClose={() => setSeleccionado(null)} />
+      <ClienteDetalleDrawer
+        dni={seleccionado}
+        onClose={() => setSeleccionado(null)}
+        onCambio={() => setRecargas((n) => n + 1)}
+      />
     </div>
   );
 }
