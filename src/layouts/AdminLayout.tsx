@@ -1,5 +1,6 @@
 import {
   AppstoreOutlined,
+  BugOutlined,
   DashboardOutlined,
   FireOutlined,
   IdcardOutlined,
@@ -22,6 +23,7 @@ const menuItems = [
   { key: '/admin/clientes', icon: <TeamOutlined />, label: <Link to="/admin/clientes">Clientes</Link> },
   { key: '/admin/reviews', icon: <StarOutlined />, label: <Link to="/admin/reviews">Reviews</Link> },
   { key: '/admin/usuarios', icon: <IdcardOutlined />, label: <Link to="/admin/usuarios">Usuarios</Link> },
+  { key: '/admin/errores', icon: <BugOutlined />, label: <Link to="/admin/errores">Errores</Link> },
   { key: '/cocina', icon: <FireOutlined />, label: <Link to="/cocina">Panel de cocina</Link> },
 ];
 

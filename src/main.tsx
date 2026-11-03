@@ -8,6 +8,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { ClienteLayout } from './layouts/ClienteLayout';
 import { Cargando } from './shared/Cargando';
 import { ErrorBoundary } from './shared/ErrorBoundary';
+import { capturarErroresGlobales } from './shared/reportarError';
 import { NotFoundView } from './shared/NotFoundView';
 import { RutaProtegida } from './shared/RutaProtegida';
 import { InicioView } from './modules/Inicio/views/InicioView';
@@ -17,6 +18,7 @@ import {
   CarritoView,
   ClienteListView,
   CategoriaListView,
+  ErrorListView,
   CocinaLayout,
   IdentificacionView,
   LoginView,
@@ -33,6 +35,9 @@ import './index.css';
 
 dayjs.extend(relativeTime);
 dayjs.locale('es');
+
+// Errores de JavaScript no atrapados → log de errores (Firestore, vía POST /errores).
+capturarErroresGlobales();
 
 const root = document.getElementById('root')!;
 
@@ -83,6 +88,7 @@ ReactDOM.createRoot(root).render(
               <Route path="clientes" element={<ClienteListView />} />
               <Route path="reviews" element={<ReviewListView />} />
               <Route path="usuarios" element={<UsuarioListView />} />
+              <Route path="errores" element={<ErrorListView />} />
             </Route>
 
             <Route path="*" element={<NotFoundView />} />
