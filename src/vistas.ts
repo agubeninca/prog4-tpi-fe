@@ -33,3 +33,6 @@ export const ClienteListView = lazy(() =>
 export const ErrorListView = lazy(() =>
   import('./modules/Error/views/ErrorListView').then((m) => ({ default: m.ErrorListView })),
 );
+export const PedidoListView = lazy(() =>
+  import('./modules/Pedido/views/PedidoListView').then((m) => ({ default: m.PedidoListView })),
+);

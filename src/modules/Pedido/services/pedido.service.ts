@@ -44,9 +44,18 @@ export interface Pedido {
 
 export interface FiltroPedidos {
   estado?: EstadoPedido;
-  /** AAAA-MM-DD */
+  /** Un solo día, AAAA-MM-DD (lo usa el Resumen). */
   fecha?: string;
+  /** Rango, AAAA-MM-DD. */
+  desde?: string;
+  hasta?: string;
+  /** Nombre o DNI del cliente (parcial). */
+  q?: string;
+  numero_mesa?: number;
 }
+
+/** El backend devuelve como máximo esta cantidad de pedidos por consulta. */
+export const LIMITE_PEDIDOS = 500;
 
 export const pedidoService = {
   getAll: (filtro: FiltroPedidos = {}) => api.get<Pedido[]>('/pedidos', { params: filtro }).then((res) => res.data),

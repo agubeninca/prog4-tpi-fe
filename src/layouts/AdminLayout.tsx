@@ -5,6 +5,7 @@ import {
   FireOutlined,
   IdcardOutlined,
   QrcodeOutlined,
+  ShoppingCartOutlined,
   ShoppingOutlined,
   StarOutlined,
   TeamOutlined,
@@ -17,6 +18,7 @@ import './layouts.css';
 
 const menuItems = [
   { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">Resumen</Link> },
+  { key: '/admin/pedidos', icon: <ShoppingCartOutlined />, label: <Link to="/admin/pedidos">Pedidos</Link> },
   { key: '/admin/categorias', icon: <AppstoreOutlined />, label: <Link to="/admin/categorias">Categorías</Link> },
   { key: '/admin/productos', icon: <ShoppingOutlined />, label: <Link to="/admin/productos">Productos</Link> },
   { key: '/admin/mesas', icon: <QrcodeOutlined />, label: <Link to="/admin/mesas">Mesas</Link> },
