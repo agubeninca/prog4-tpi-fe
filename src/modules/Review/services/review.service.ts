@@ -25,9 +25,12 @@ export interface ListadoReviews {
 export interface FiltroReviews {
   desde?: string;
   hasta?: string;
+  /** Solo las reviews de este cliente. */
+  dni?: string;
 }
 
 export const reviewService = {
   getAll: (filtro: FiltroReviews = {}) =>
     api.get<ListadoReviews>('/reviews', { params: filtro }).then((res) => res.data),
+  remove: (id: number) => api.delete(`/reviews/${id}`),
 };
