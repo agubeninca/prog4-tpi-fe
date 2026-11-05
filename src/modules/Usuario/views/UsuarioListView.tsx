@@ -7,7 +7,7 @@ import { ETIQUETA_ROL, type UsuarioRol } from '../../Auth/services/auth.service'
 import { UsuarioForm } from '../components/UsuarioForm';
 import type { Usuario, UsuarioInput } from '../services/usuario.service';
 
-const COLOR_ROL: Record<UsuarioRol, string> = { ADMIN: 'purple', COCINA: 'orange' };
+const COLOR_ROL: Record<UsuarioRol, string> = { ADMIN: 'purple', BARRA: 'cyan', COCINA: 'orange' };
 
 export function UsuarioListView() {
   const { items, loading, fetchAll, create, update, remove } = useUsuarioStore();

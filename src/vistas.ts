@@ -14,6 +14,9 @@ export const CocinaLayout = lazy(() => import('./layouts/CocinaLayout').then((m)
 export const PanelComandasView = lazy(() =>
   import('./modules/Cocina/views/PanelComandasView').then((m) => ({ default: m.PanelComandasView })),
 );
+export const RegistroManualView = lazy(() =>
+  import('./modules/Cocina/views/RegistroManualView').then((m) => ({ default: m.RegistroManualView })),
+);
 export const AdminLayout = lazy(() => import('./layouts/AdminLayout').then((m) => ({ default: m.AdminLayout })));
 export const ResumenView = lazy(() => import('./modules/Resumen/views/ResumenView').then((m) => ({ default: m.ResumenView })));
 export const CategoriaListView = lazy(() =>

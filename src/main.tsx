@@ -27,6 +27,7 @@ import {
   PedidoListView,
   PanelComandasView,
   PedidoEstadoView,
+  RegistroManualView,
   ProductoListView,
   ResumenView,
   ReviewListView,
@@ -61,16 +62,24 @@ ReactDOM.createRoot(root).render(
               </Route>
             </Route>
 
-            {/* Vista Cocina / Barra */}
+            {/* Panel de comandas: Barra lo gestiona, Cocina solo lo visualiza */}
             <Route
               path="cocina"
               element={
-                <RutaProtegida roles={['ADMIN', 'COCINA']}>
+                <RutaProtegida roles={['ADMIN', 'BARRA', 'COCINA']}>
                   <CocinaLayout />
                 </RutaProtegida>
               }
             >
               <Route index element={<PanelComandasView />} />
+              <Route
+                path="manuales"
+                element={
+                  <RutaProtegida roles={['ADMIN', 'BARRA']}>
+                    <RegistroManualView />
+                  </RutaProtegida>
+                }
+              />
             </Route>
 
             {/* Panel de Administración */}

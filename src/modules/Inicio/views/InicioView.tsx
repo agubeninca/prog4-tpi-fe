@@ -14,7 +14,7 @@ export function InicioView() {
       <Space orientation="vertical" style={{ width: '100%' }}>
         <Link to="/cocina">
           <Button block size="large">
-            Cocina / Barra
+            Barra / Cocina
           </Button>
         </Link>
         <Link to="/admin">

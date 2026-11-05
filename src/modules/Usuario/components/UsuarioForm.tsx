@@ -1,5 +1,6 @@
 import { Button, Form, Input, Select } from 'antd';
 import {
+  DESCRIPCION_ROL,
   ETIQUETA_ROL,
   NOMBRE_USUARIO_MENSAJE,
   NOMBRE_USUARIO_REGEX,
@@ -18,8 +19,11 @@ interface UsuarioFormProps {
 const OPCIONES_ROL = (Object.keys(ETIQUETA_ROL) as UsuarioRol[]).map((rol) => ({ value: rol, label: ETIQUETA_ROL[rol] }));
 
 export function UsuarioForm({ initialValues, editando, onSubmit, loading }: UsuarioFormProps) {
+  const [form] = Form.useForm<UsuarioInput>();
+  const rol = Form.useWatch('rol', form);
+
   return (
-    <Form layout="vertical" initialValues={initialValues ?? { rol: 'COCINA' }} onFinish={onSubmit}>
+    <Form form={form} layout="vertical" initialValues={initialValues ?? { rol: 'BARRA' }} onFinish={onSubmit}>
       <Form.Item
         name="nombre_usuario"
         label="Usuario"
@@ -40,7 +44,7 @@ export function UsuarioForm({ initialValues, editando, onSubmit, loading }: Usua
       >
         <Input maxLength={100} />
       </Form.Item>
-      <Form.Item name="rol" label="Rol" rules={[{ required: true, message: 'Elegí el rol' }]}>
+      <Form.Item name="rol" label="Rol" rules={[{ required: true, message: 'Elegí el rol' }]} extra={rol && DESCRIPCION_ROL[rol]}>
         <Select options={OPCIONES_ROL} />
       </Form.Item>
       <Form.Item

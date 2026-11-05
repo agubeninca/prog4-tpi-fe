@@ -20,7 +20,8 @@ Funciona igual en macOS, Windows y Linux (Node ≥ 20). Si el backend no respond
 |---|---|---|
 | `/m/:hash` | Cliente (celular) | Se entra escaneando el QR de la mesa → DNI + nombre → menú → carrito → estado del pedido + review |
 | `/login` | Personal | Firebase Auth (emulador) |
-| `/cocina` | COCINA, ADMIN | Comandas en tiempo real (Firestore `onSnapshot`) y cambio de estado |
+| `/cocina` | BARRA, COCINA, ADMIN | Comandas en tiempo real (Firestore `onSnapshot`). BARRA y ADMIN cambian el estado; COCINA solo lo visualiza |
+| `/cocina/manuales` | BARRA, ADMIN | Registro de comandas cargadas a mano (botón "Cargar comanda" del panel): horario, comanda, cliente y quién la cargó |
 | `/admin` | ADMIN | Resumen de ventas del día, historial de pedidos, categorías, productos (imagen y pausa), mesas (QR), clientes (ficha con pedidos y reviews), reviews, usuarios y log de errores |
 
 Para probar la vista cliente sin celular: en **Admin → Mesas → Ver QR** está el link "Abrir vista cliente".

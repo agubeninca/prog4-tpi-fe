@@ -23,6 +23,8 @@ export function urlMesa(hashCodigoQr: string) {
 
 export const mesaService = {
   getAll: () => api.get<Mesa[]>('/mesas').then((res) => res.data),
+  /** Mesas habilitadas (lo usa la Barra para cargar comandas a mano). */
+  getActivas: () => api.get<Pick<Mesa, 'id_mesa' | 'numero_mesa'>[]>('/mesas/activas').then((res) => res.data),
   create: (data: MesaInput) => api.post<Mesa>('/mesas', data).then((res) => res.data),
   update: (id: number, data: MesaInput) => api.patch<Mesa>(`/mesas/${id}`, data).then((res) => res.data),
   remove: (id: number) => api.delete(`/mesas/${id}`),

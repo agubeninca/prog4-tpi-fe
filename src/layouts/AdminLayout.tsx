@@ -3,6 +3,7 @@ import {
   BugOutlined,
   DashboardOutlined,
   FireOutlined,
+  FormOutlined,
   IdcardOutlined,
   QrcodeOutlined,
   ShoppingCartOutlined,
@@ -26,7 +27,8 @@ const menuItems = [
   { key: '/admin/reviews', icon: <StarOutlined />, label: <Link to="/admin/reviews">Reviews</Link> },
   { key: '/admin/usuarios', icon: <IdcardOutlined />, label: <Link to="/admin/usuarios">Usuarios</Link> },
   { key: '/admin/errores', icon: <BugOutlined />, label: <Link to="/admin/errores">Errores</Link> },
-  { key: '/cocina', icon: <FireOutlined />, label: <Link to="/cocina">Panel de cocina</Link> },
+  { key: '/cocina/manuales', icon: <FormOutlined />, label: <Link to="/cocina/manuales">Comandas manuales</Link> },
+  { key: '/cocina', icon: <FireOutlined />, label: <Link to="/cocina">Panel de comandas</Link> },
 ];
 
 export function AdminLayout() {

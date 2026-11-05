@@ -1,6 +1,6 @@
 import { api } from '../../../shared/api';
 
-export type UsuarioRol = 'ADMIN' | 'COCINA';
+export type UsuarioRol = 'ADMIN' | 'BARRA' | 'COCINA';
 
 export interface UsuarioSesion {
   id_usuario: number;
@@ -11,8 +11,21 @@ export interface UsuarioSesion {
 
 export const ETIQUETA_ROL: Record<UsuarioRol, string> = {
   ADMIN: 'Administración',
-  COCINA: 'Cocina / Barra',
+  BARRA: 'Barra',
+  COCINA: 'Cocina (solo lectura)',
 };
+
+/** Qué puede hacer cada rol, para mostrarlo al elegirlo. */
+export const DESCRIPCION_ROL: Record<UsuarioRol, string> = {
+  ADMIN: 'Acceso a todo el panel de administración y al de comandas.',
+  BARRA: 'Panel de comandas: toma los pedidos, los marca como servidos o los cancela.',
+  COCINA: 'Panel de comandas en modo visualización: ve qué hay que preparar, sin cambiar estados.',
+};
+
+/** Roles que pueden cambiar el estado de una comanda (COCINA solo la ve). */
+export function puedeGestionarComandas(rol: UsuarioRol | undefined) {
+  return rol === 'ADMIN' || rol === 'BARRA';
+}
 
 // El personal entra con un nombre de usuario (ej. "cocina1", "jperez" o un legajo), pero Firebase Auth
 // necesita un email: se usa uno interno que nadie ve. Debe coincidir con el backend (usuarios/cuenta-firebase.ts).
