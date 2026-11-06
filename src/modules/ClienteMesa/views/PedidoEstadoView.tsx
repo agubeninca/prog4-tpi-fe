@@ -68,6 +68,8 @@ export function PedidoEstadoView() {
   }
 
   const pasoActual = PASOS.findIndex((paso) => paso.estado === pedido.estado);
+  // Una sola opinión por pedido: si ya la dejó, se muestra en lugar del formulario.
+  const opinion = pedido.review.at(-1);
 
   return (
     <Flex vertical gap={16}>
@@ -115,21 +117,20 @@ export function PedidoEstadoView() {
         </Flex>
       </Card>
 
-      {/* RF-09: la review se puede dejar en cualquier momento */}
-      <Card title="Dejanos tu opinión">
-        {pedido.review.length > 0 && (
-          <Flex vertical gap={12} style={{ marginBottom: 16 }}>
-            {pedido.review.map((review) => (
-              <Flex key={review.id_review} vertical>
-                <Rate disabled value={review.puntuacion} style={{ fontSize: 14 }} />
-                {review.comentario && <Typography.Text>{review.comentario}</Typography.Text>}
-              </Flex>
-            ))}
-            <Divider style={{ margin: 0 }} />
+      {/* RF-09: la review se puede dejar en cualquier momento, una sola vez por pedido. */}
+      {opinion ? (
+        <Card title="Tu opinión">
+          <Flex vertical gap={8}>
+            <Rate disabled value={opinion.puntuacion} style={{ fontSize: 22 }} />
+            {opinion.comentario && <Typography.Paragraph style={{ margin: 0 }}>{opinion.comentario}</Typography.Paragraph>}
+            <Typography.Text type="secondary">¡Gracias por contarnos qué te pareció!</Typography.Text>
           </Flex>
-        )}
-        <ReviewForm idPedido={pedido.id_pedido} dni={cliente.dni} onCreada={recargar} />
-      </Card>
+        </Card>
+      ) : (
+        <Card title="Dejanos tu opinión">
+          <ReviewForm idPedido={pedido.id_pedido} dni={cliente.dni} onCreada={recargar} />
+        </Card>
+      )}
     </Flex>
   );
 }

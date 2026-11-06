@@ -1,5 +1,5 @@
 import type { DocumentData, QueryDocumentSnapshot, Timestamp } from 'firebase/firestore';
-import type { EstadoPedido, OrigenPedido } from '../Pedido/services/pedido.service';
+import type { EstadoPago, EstadoPedido, MedioPago, OrigenPedido } from '../Pedido/services/pedido.service';
 
 export const COLECCION_COMANDAS = 'pedidos_activos';
 
@@ -11,6 +11,9 @@ export interface Comanda {
   estado: EstadoPedido;
   /** Puede faltar en comandas anteriores a la carga manual. */
   origen?: OrigenPedido;
+  /** Puede faltar en comandas anteriores al estado de pago (se toman como pendientes). */
+  pagado?: EstadoPago;
+  medio_pago?: MedioPago | null;
   motivo_cancelacion: string | null;
   items: { nombre: string; cantidad: number }[];
   precio_total: string;

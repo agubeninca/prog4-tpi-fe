@@ -11,6 +11,13 @@ import { productoService, type Producto, type ProductoInput } from '../services/
 
 const TAMANIO_MINIATURA = 48;
 
+/** Se muestra si el archivo ya no está en Storage (ej. el emulador se cerró sin guardar). */
+const IMAGEN_NO_DISPONIBLE =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect width="48" height="48" rx="6" fill="#f5f5f5"/><path d="M14 32l7-9 5 6 3-4 5 7z" fill="#d9d9d9"/><circle cx="30" cy="17" r="3" fill="#d9d9d9"/></svg>',
+  );
+
 export function ProductoListView() {
   const { items, loading, fetchAll, create, update, remove } = useProductoStore();
   const { items: categorias, fetchAll: fetchCategorias } = useCategoriaStore();
@@ -136,6 +143,7 @@ export function ProductoListView() {
                   width={TAMANIO_MINIATURA}
                   height={TAMANIO_MINIATURA}
                   style={{ objectFit: 'cover', borderRadius: 6 }}
+                  fallback={IMAGEN_NO_DISPONIBLE}
                 />
               ) : (
                 <PictureOutlined style={{ fontSize: 24, color: '#bfbfbf' }} />
@@ -227,6 +235,9 @@ export function ProductoListView() {
           <img
             src={urlImagen(imagenProducto.ruta_imagen, imagenProducto.fecha_actualizacion)}
             alt={imagenProducto.nombre}
+            onError={(evento) => {
+              evento.currentTarget.style.display = 'none';
+            }}
             style={{ display: 'block', maxWidth: '100%', maxHeight: 240, marginBottom: 16, borderRadius: 8 }}
           />
         )}

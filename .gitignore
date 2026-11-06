@@ -25,3 +25,6 @@ dist-ssr
 
 # Variables de entorno locales
 .env
+
+# Windows / OneDrive
+desktop.ini

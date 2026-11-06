@@ -1,0 +1,494 @@
+/* Panel de comandas (Barra / Cocina).
+   Cada estado tiene su color: ámbar = esperando que la barra lo tome, azul = en preparación. */
+.panel-comandas {
+  --tinta: #1c2430;
+  --tinta-suave: #5b6675;
+  --linea: #dfe3ea;
+  --pendiente: #e8a317;
+  --pendiente-fondo: #fff4dc;
+  --pendiente-texto: #7a4b00;
+  --preparacion: #3157d5;
+  --preparacion-fondo: #e9efff;
+  --preparacion-texto: #1d3489;
+  --demora: #d64545;
+  --servido: #1f9d55;
+  --cobro: #7c3aed;
+  --cobro-fondo: #f3eefe;
+  --cobro-texto: #4c1d95;
+  color: var(--tinta);
+}
+
+/* Barra de herramientas */
+.panel-comandas__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.panel-comandas__titulo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.panel-comandas__en-vivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--servido);
+}
+
+.panel-comandas__en-vivo::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--servido);
+  box-shadow: 0 0 0 3px rgba(31, 157, 85, 0.18);
+}
+
+/* Neutro: no se confunde con los colores de los estados. */
+.panel-comandas__cargar {
+  background: var(--tinta) !important;
+}
+
+.panel-comandas__cargar:hover {
+  background: #323d4d !important;
+}
+
+/* Columnas (carriles) */
+.panel-comandas__carriles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.panel-comandas__carriles--tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panel-comandas__carriles--uno {
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.carril {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  padding: 20px 16px 16px;
+  background: var(--carril-fondo);
+}
+
+.carril--cobro {
+  --carril-color: var(--cobro);
+  --carril-fondo: var(--cobro-fondo);
+  --carril-texto: var(--cobro-texto);
+}
+
+/* Franja del color del estado arriba de la columna. */
+.carril::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: var(--carril-color);
+}
+
+.carril--pendiente {
+  --carril-color: var(--pendiente);
+  --carril-fondo: var(--pendiente-fondo);
+  --carril-texto: var(--pendiente-texto);
+}
+
+.carril--preparacion {
+  --carril-color: var(--preparacion);
+  --carril-fondo: var(--preparacion-fondo);
+  --carril-texto: var(--preparacion-texto);
+}
+
+.carril__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.carril__contador {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: var(--carril-color);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.carril__titulo {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--carril-texto);
+  line-height: 1.2;
+}
+
+.carril__ayuda {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--tinta-suave);
+}
+
+.carril__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.carril__vacio {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+  border: 2px dashed color-mix(in srgb, var(--carril-color) 35%, transparent);
+  border-radius: 12px;
+  color: var(--tinta-suave);
+  font-size: 14px;
+  text-align: center;
+  padding: 16px;
+}
+
+/* Comanda */
+.comanda {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(28, 36, 48, 0.08);
+  outline: 2px solid transparent;
+  transition: outline-color 0.2s;
+}
+
+.comanda--demorada {
+  outline-color: var(--demora);
+}
+
+.comanda__mesa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: var(--carril-color);
+  color: #fff;
+  padding: 12px 6px;
+}
+
+.carril--pendiente .comanda__mesa {
+  color: #3d2600;
+}
+
+.comanda__mesa-etiqueta {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.comanda__mesa-numero {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.comanda__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+
+.comanda__cabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.comanda__cliente {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comanda__datos {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--tinta-suave);
+}
+
+.comanda__manual {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eceff3;
+  color: var(--tinta);
+  font-weight: 600;
+}
+
+.comanda__reloj {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f3f6;
+  color: var(--tinta);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.comanda--demorada .comanda__reloj {
+  background: var(--demora);
+  color: #fff;
+  animation: comanda-latido 1.6s ease-in-out infinite;
+}
+
+.comanda__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comanda__item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.comanda__cantidad {
+  flex-shrink: 0;
+  min-width: 32px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--carril-fondo);
+  color: var(--carril-texto);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Total y estado de pago */
+.comanda__pago {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--linea);
+}
+
+.comanda__total {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.comanda__total-etiqueta {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tinta-suave);
+}
+
+.comanda__medio {
+  flex-basis: 100%;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #136c3a;
+}
+
+.comanda__selector-pago--pendiente .ant-segmented-item-selected {
+  background: var(--cobro-fondo) !important;
+  color: var(--cobro-texto) !important;
+  font-weight: 600;
+}
+
+.comanda__selector-pago--pagado .ant-segmented-item-selected {
+  background: #e3f5ea !important;
+  color: #136c3a !important;
+  font-weight: 600;
+}
+
+.comanda__acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.comanda__accion {
+  flex: 1;
+  height: 44px !important;
+  border: none !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+.comanda__accion--tomar {
+  background: var(--pendiente) !important;
+  color: #3d2600 !important;
+}
+
+.comanda__accion--tomar:hover {
+  background: #d6940f !important;
+}
+
+.comanda__accion--servido {
+  background: var(--servido) !important;
+  color: #fff !important;
+}
+
+.comanda__accion--servido:hover {
+  background: #188548 !important;
+}
+
+.comanda__accion--cobrar {
+  background: var(--cobro) !important;
+  color: #fff !important;
+}
+
+.comanda__accion--cobrar:hover {
+  background: #6528d3 !important;
+}
+
+.comanda__cancelar {
+  height: 44px !important;
+  color: var(--tinta-suave) !important;
+}
+
+.comanda__cancelar:hover:not(:disabled) {
+  color: var(--demora) !important;
+  background: #fdecec !important;
+}
+
+/* Comanda recién llegada: un resalte breve para que se note. */
+.comanda--nueva {
+  animation: comanda-llegada 2.4s ease-out;
+}
+
+@keyframes comanda-llegada {
+  0% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--carril-color) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 1px 2px rgba(28, 36, 48, 0.08);
+  }
+}
+
+@keyframes comanda-latido {
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comanda--nueva,
+  .comanda--demorada .comanda__reloj {
+    animation: none;
+  }
+}
+
+@media (max-width: 1280px) {
+  .panel-comandas__carriles--tres {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .panel-comandas__carriles,
+  .panel-comandas__carriles--tres {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .carril {
+    padding: 16px 10px 10px;
+  }
+
+  /* En el celular "Cancelar" queda solo con el ícono para que entre la acción principal. */
+  .comanda__cancelar-texto {
+    display: none;
+  }
+
+  .comanda {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .comanda__mesa-numero {
+    font-size: 32px;
+  }
+}
+
+/* Navegación del encabezado (Comandas / Registro manual) */
+.panel-nav {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.panel-nav__enlace {
+  padding: 4px 12px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 22px;
+}
+
+.panel-nav__enlace:hover {
+  color: #fff;
+}
+
+.panel-nav__enlace--activo,
+.panel-nav__enlace--activo:hover {
+  background: #fff;
+  color: #1c2430;
+}
+
+.panel-nav__enlace:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}

@@ -1,0 +1,55 @@
+.medios-pago {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.medios-pago__opcion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 92px;
+  padding: 12px 8px;
+  border: 2px solid #dfe3ea;
+  border-radius: 12px;
+  background: #fff;
+  color: #1c2430;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.medios-pago__opcion:hover {
+  border-color: #b8a3f0;
+}
+
+.medios-pago__opcion:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+.medios-pago__opcion--elegida,
+.medios-pago__opcion--elegida:hover {
+  border-color: #7c3aed;
+  background: #f3eefe;
+  color: #4c1d95;
+}
+
+.medios-pago__icono {
+  font-size: 26px;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .medios-pago {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

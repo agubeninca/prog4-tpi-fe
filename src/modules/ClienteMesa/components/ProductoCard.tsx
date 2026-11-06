@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { CoffeeOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Card, Flex, Typography } from 'antd';
 import { urlImagen } from '../../../shared/firebase';
@@ -14,14 +15,23 @@ const ALTO_IMAGEN = 160;
 
 export function ProductoCard({ producto, cantidadEnCarrito, onAgregar }: ProductoCardProps) {
   const imagen = urlImagen(producto.ruta_imagen, producto.fecha_actualizacion);
+  // Si el archivo no está en Storage (ej. se perdió), se muestra el ícono en vez de una imagen rota.
+  const [imagenRota, setImagenRota] = useState<string | null>(null);
+  const mostrarImagen = imagen && imagenRota !== imagen;
 
   return (
     <Card
       style={{ height: '100%' }}
       styles={{ body: { padding: 16 } }}
       cover={
-        imagen ? (
-          <img alt={producto.nombre} src={imagen} style={{ height: ALTO_IMAGEN, objectFit: 'cover' }} loading="lazy" />
+        mostrarImagen ? (
+          <img
+            alt={producto.nombre}
+            src={imagen}
+            style={{ height: ALTO_IMAGEN, objectFit: 'cover' }}
+            loading="lazy"
+            onError={() => setImagenRota(imagen)}
+          />
         ) : (
           <Flex align="center" justify="center" style={{ height: ALTO_IMAGEN, background: '#fafafa' }}>
             <CoffeeOutlined style={{ fontSize: 40, color: '#d9d9d9' }} />

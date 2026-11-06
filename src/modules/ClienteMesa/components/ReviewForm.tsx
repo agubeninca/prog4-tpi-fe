@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Form, Input, Rate, message } from 'antd';
+import axios from 'axios';
 import { getErrorMessage } from '../../../shared/api';
 import { clienteMesaService } from '../services/clienteMesa.service';
 
@@ -29,6 +30,10 @@ export function ReviewForm({ idPedido, dni, onCreada }: ReviewFormProps) {
       onCreada();
     } catch (error) {
       message.error(getErrorMessage(error));
+      // 409: ya había una opinión (ej. enviada desde otra pestaña): se recarga para mostrarla.
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        onCreada();
+      }
     } finally {
       setEnviando(false);
     }
@@ -43,7 +48,7 @@ export function ReviewForm({ idPedido, dni, onCreada }: ReviewFormProps) {
         <Input.TextArea maxLength={500} showCount rows={3} placeholder="Contanos tu experiencia" />
       </Form.Item>
       <Button type="primary" htmlType="submit" block loading={enviando}>
-        Enviar review
+        Enviar opinión
       </Button>
     </Form>
   );

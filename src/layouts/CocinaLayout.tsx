@@ -4,6 +4,7 @@ import { SesionUsuario } from '../shared/SesionUsuario';
 import { useAuthStore } from '../stores/auth.store';
 import { puedeGestionarComandas } from '../modules/Auth/services/auth.service';
 import './layouts.css';
+import '../modules/Cocina/panel-comandas.css';
 
 const TITULO_POR_ROL = {
   ADMIN: 'Kitch · Panel de comandas',
@@ -24,18 +25,28 @@ export function CocinaLayout() {
   const gestiona = puedeGestionarComandas(rol);
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Layout.Header className="layout-header" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+    <Layout style={{ minHeight: '100vh', background: '#edeff3' }}>
+      <Layout.Header
+        className="layout-header"
+        // Alto flexible: en el celular la navegación baja a otra línea sin tapar el contenido.
+        style={{ justifyContent: 'space-between', flexWrap: 'wrap', height: 'auto', minHeight: 64, paddingBlock: 10, lineHeight: 'normal' }}
+      >
         <span>{rol ? TITULO_POR_ROL[rol] : 'Kitch'}</span>
         <Space wrap>
-          {gestiona &&
-            SECCIONES.map(({ ruta, etiqueta }) => (
-              <Link key={ruta} to={ruta}>
-                <Button size="small" type={pathname === ruta ? 'primary' : 'default'} ghost={pathname !== ruta}>
+          {gestiona && (
+            <nav className="panel-nav" aria-label="Secciones">
+              {SECCIONES.map(({ ruta, etiqueta }) => (
+                <Link
+                  key={ruta}
+                  to={ruta}
+                  className={`panel-nav__enlace${pathname === ruta ? ' panel-nav__enlace--activo' : ''}`}
+                  aria-current={pathname === ruta ? 'page' : undefined}
+                >
                   {etiqueta}
-                </Button>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </nav>
+          )}
           {esAdmin && (
             <Link to="/admin">
               <Button size="small" ghost>

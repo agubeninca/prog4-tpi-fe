@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ReloadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Col, DatePicker, Flex, Input, InputNumber, Popconfirm, Row, Segmented, Space, Statistic, Table, Tag, Typography, message } from 'antd';
+import { InfoCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Alert, Button, Card, Col, DatePicker, Flex, Input, InputNumber, Popconfirm, Row, Segmented, Statistic, Table, Tag, Tooltip, Typography, message } from 'antd';
 import Decimal from 'decimal.js';
 import dayjs, { type Dayjs } from 'dayjs';
 import { getErrorMessage } from '../../../shared/api';
 import { formatearDni } from '../../../shared/dni';
 import { formatearMoneda } from '../../../shared/moneda';
+import { ElegirMedioPagoModal } from '../components/ElegirMedioPagoModal';
 import { EstadoPagoTag } from '../components/EstadoPagoTag';
 import { EstadoPedidoTag } from '../components/EstadoPedidoTag';
 import {
   ETIQUETA_ESTADO,
+  ETIQUETA_MEDIO_PAGO,
   ETIQUETA_PAGO,
   LIMITE_PEDIDOS,
+  medioEnFrase,
   pedidoService,
   type DetallePedido,
   type EstadoPago,
   type EstadoPedido,
+  type MedioPago,
   type Pedido,
 } from '../services/pedido.service';
 
@@ -45,6 +49,8 @@ export function PedidoListView() {
   const [recargas, setRecargas] = useState(0);
   const [datos, setDatos] = useState<{ clave: string; pedidos: Pedido[] } | null>(null);
   const [cobrando, setCobrando] = useState<number | null>(null);
+  /** Pedido que se está marcando como pagado: primero se elige el medio de pago. */
+  const [aCobrar, setACobrar] = useState<Pedido | null>(null);
 
   const desde = rango?.[0]?.format('YYYY-MM-DD');
   const hasta = rango?.[1]?.format('YYYY-MM-DD');
@@ -88,17 +94,22 @@ export function PedidoListView() {
     };
   }, [pedidos]);
 
-  const cambiarPago = async (pedido: Pedido, pagado: EstadoPago) => {
+  const cambiarPago = async (pedido: Pedido, pagado: EstadoPago, medio?: MedioPago) => {
     setCobrando(pedido.id_pedido);
     try {
-      const actualizado = await pedidoService.cambiarPago(pedido.id_pedido, pagado);
+      const actualizado = await pedidoService.cambiarPago(pedido.id_pedido, pagado, medio);
       setDatos((actual) =>
         actual && {
           ...actual,
           pedidos: actual.pedidos.map((p) => (p.id_pedido === actualizado.id_pedido ? actualizado : p)),
         },
       );
-      message.success(`Pedido #${pedido.id_pedido}: ${ETIQUETA_PAGO[pagado].toLowerCase()}`);
+      message.success(
+        medio
+          ? `Pedido #${pedido.id_pedido}: pagó con ${medioEnFrase(medio)}`
+          : `Pedido #${pedido.id_pedido}: ${ETIQUETA_PAGO[pagado].toLowerCase()}`,
+      );
+      setACobrar(null);
     } catch (error) {
       message.error(getErrorMessage(error));
     } finally {
@@ -115,26 +126,40 @@ export function PedidoListView() {
     setMesa(null);
   };
 
+  const primeraCarga = datos === null;
+  const columnaMetrica = { xs: 12, md: 6, xl: 4 };
+  const tarjetas = [
+    { titulo: 'Pedidos', valor: metricas.cantidad },
+    { titulo: 'Servidos', valor: metricas.servidos },
+    { titulo: 'Cancelados', valor: metricas.cancelados },
+    { titulo: 'Pendientes de pago', valor: metricas.pendientesPago, color: '#d46b08' },
+  ];
+
   return (
     <div>
-      <Space wrap style={{ marginBottom: 16, justifyContent: 'space-between', width: '100%' }}>
-        <h1>Pedidos</h1>
+      <Flex justify="space-between" align="center" gap={12} wrap style={{ marginBottom: 16 }}>
+        <h1 style={{ margin: 0 }}>Pedidos</h1>
         <Button icon={<ReloadOutlined />} onClick={() => setRecargas((n) => n + 1)} loading={loading}>
           Actualizar
         </Button>
-      </Space>
+      </Flex>
 
-      <Flex vertical gap={12} style={{ marginBottom: 16 }}>
+      <Flex vertical gap={12} style={{ marginBottom: 20 }}>
         <Flex wrap gap={12}>
-          <Segmented value={estado} onChange={(valor) => setEstado(valor)} options={OPCIONES_ESTADO} />
-          <Segmented value={pago} onChange={(valor) => setPago(valor)} options={OPCIONES_PAGO} />
+          <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+            <Segmented value={estado} onChange={(valor) => setEstado(valor)} options={OPCIONES_ESTADO} />
+          </div>
+          <div style={{ maxWidth: '100%', overflowX: 'auto' }}>
+            <Segmented value={pago} onChange={(valor) => setPago(valor)} options={OPCIONES_PAGO} />
+          </div>
         </Flex>
-        <Flex wrap gap={12}>
+        <Flex wrap gap={12} align="center">
           <DatePicker.RangePicker
             value={rango}
             onChange={(valor) => setRango(valor)}
             format="DD/MM/YYYY"
             disabledDate={(dia) => dia.isAfter(dayjs(), 'day')}
+            style={{ width: 280 }}
           />
           <Input.Search
             allowClear
@@ -146,39 +171,41 @@ export function PedidoListView() {
             min={1}
             max={999}
             precision={0}
-            placeholder="Mesa"
-            style={{ width: 110 }}
+            placeholder="N.º de mesa"
+            style={{ width: 130 }}
             value={mesa}
             onChange={(valor) => setMesa(valor)}
           />
-          {hayFiltros && <Button onClick={limpiarFiltros}>Limpiar filtros</Button>}
+          {hayFiltros && (
+            <Button type="link" onClick={limpiarFiltros} style={{ paddingInline: 4 }}>
+              Limpiar filtros
+            </Button>
+          )}
         </Flex>
       </Flex>
 
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={12} md={8} xl={{ flex: '20%' }}>
+      {/* Mientras se recarga, las métricas se atenúan en vez de saltar a 0. */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 20, opacity: loading && !primeraCarga ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+        {tarjetas.map((tarjeta) => (
+          <Col key={tarjeta.titulo} {...columnaMetrica}>
+            <Card size="small" style={{ height: '100%' }}>
+              <Statistic
+                title={tarjeta.titulo}
+                value={tarjeta.valor}
+                loading={primeraCarga}
+                styles={tarjeta.color ? { content: { color: tarjeta.color } } : undefined}
+              />
+            </Card>
+          </Col>
+        ))}
+        <Col xs={24} md={24} xl={8}>
           <Card size="small" style={{ height: '100%' }}>
-            <Statistic title="Pedidos" value={metricas.cantidad} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={{ flex: '20%' }}>
-          <Card size="small" style={{ height: '100%' }}>
-            <Statistic title="Servidos" value={metricas.servidos} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={{ flex: '20%' }}>
-          <Card size="small" style={{ height: '100%' }}>
-            <Statistic title="Cancelados" value={metricas.cancelados} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={{ flex: '20%' }}>
-          <Card size="small" style={{ height: '100%' }}>
-            <Statistic title="Pendientes de pago" value={metricas.pendientesPago} styles={{ content: { color: '#d46b08' } }} />
-          </Card>
-        </Col>
-        <Col xs={12} md={8} xl={{ flex: '20%' }}>
-          <Card size="small" style={{ height: '100%' }}>
-            <Statistic title="Total vendido (servidos)" value={formatearMoneda(metricas.vendido.toString())} styles={{ content: { color: '#389e0d' } }} />
+            <Statistic
+              title="Total vendido (servidos)"
+              value={formatearMoneda(metricas.vendido.toString())}
+              loading={primeraCarga}
+              styles={{ content: { color: '#389e0d', whiteSpace: 'nowrap' } }}
+            />
           </Card>
         </Col>
       </Row>
@@ -196,18 +223,28 @@ export function PedidoListView() {
         rowKey="id_pedido"
         loading={loading}
         dataSource={pedidos}
-        scroll={{ x: 'max-content' }}
+        // Entra completa desde ~1100 px; en pantallas más chicas se desplaza horizontalmente.
+        scroll={{ x: 1100 }}
         pagination={{ pageSize: 20, showSizeChanger: false, hideOnSinglePage: true }}
-        locale={{ emptyText: hayFiltros ? 'Ningún pedido coincide con los filtros' : 'Todavía no hay pedidos' }}
+        locale={{
+          // Mientras carga no se muestra "no hay pedidos" debajo del spinner.
+          emptyText: loading ? (
+            <div style={{ height: 120 }} />
+          ) : hayFiltros ? (
+            'Ningún pedido coincide con los filtros'
+          ) : (
+            'Todavía no hay pedidos'
+          ),
+        }}
         expandable={{
           expandedRowRender: (pedido: Pedido) => (
-            <Flex vertical gap={4}>
+            <Flex vertical gap={4} style={{ maxWidth: 640 }}>
               {pedido.detalle_pedido.map((detalle: DetallePedido) => (
                 <Flex key={detalle.id_detalle} justify="space-between" gap={12}>
                   <span>
                     {detalle.cantidad} × {detalle.producto.nombre}
                   </span>
-                  <span>
+                  <span style={{ whiteSpace: 'nowrap' }}>
                     {formatearMoneda(detalle.precio_unitario)} c/u · <strong>{formatearMoneda(detalle.subtotal)}</strong>
                   </span>
                 </Flex>
@@ -222,31 +259,33 @@ export function PedidoListView() {
           {
             title: '#',
             dataIndex: 'id_pedido',
-            width: 90,
+            width: 100,
             render: (id: number, pedido: Pedido) => (
-              <div>
-                <div>{id}</div>
+              <Flex align="center" gap={6} style={{ whiteSpace: 'nowrap' }}>
+                <span>{id}</span>
                 {pedido.origen === 'MANUAL' && (
                   <Tag color="purple" style={{ marginInlineEnd: 0 }}>
                     Manual
                   </Tag>
                 )}
-              </div>
+              </Flex>
             ),
           },
           {
             title: 'Fecha',
             dataIndex: 'fecha_hora_ingreso',
-            width: 150,
-            render: (valor: string) => dayjs(valor).format('DD/MM/YYYY HH:mm'),
+            width: 135,
+            render: (valor: string) => <span style={{ whiteSpace: 'nowrap' }}>{dayjs(valor).format('DD/MM/YYYY HH:mm')}</span>,
           },
           { title: 'Mesa', width: 70, align: 'center', render: (_, pedido: Pedido) => pedido.mesa.numero_mesa },
           {
             title: 'Cliente',
-            width: 240,
+            ellipsis: true,
             render: (_, pedido: Pedido) => (
-              <div>
-                <div>{pedido.cliente.nombre}</div>
+              <div style={{ minWidth: 0 }}>
+                <Typography.Text ellipsis={{ tooltip: pedido.cliente.nombre }} style={{ display: 'block' }}>
+                  {pedido.cliente.nombre}
+                </Typography.Text>
                 <Typography.Text type="secondary" style={{ fontSize: 12 }}>
                   DNI {formatearDni(pedido.cliente.dni)}
                 </Typography.Text>
@@ -254,50 +293,71 @@ export function PedidoListView() {
             ),
           },
           {
-            title: 'Productos',
-            width: 90,
+            title: 'Ítems',
+            width: 70,
             align: 'center',
             render: (_, pedido: Pedido) => pedido.detalle_pedido.reduce((total, detalle) => total + detalle.cantidad, 0),
           },
           {
             title: 'Estado',
-            width: 170,
-            render: (_, pedido: Pedido) => (
-              <div>
+            width: 145,
+            // El motivo de cancelación va en un tooltip (y en el detalle) para no estirar la fila.
+            render: (_, pedido: Pedido) =>
+              pedido.motivo_cancelacion ? (
+                <Tooltip title={`Motivo: ${pedido.motivo_cancelacion}`}>
+                  <span style={{ cursor: 'help', whiteSpace: 'nowrap' }}>
+                    <EstadoPedidoTag estado={pedido.estado} />
+                    <InfoCircleOutlined style={{ color: 'rgba(0, 0, 0, 0.45)' }} />
+                  </span>
+                </Tooltip>
+              ) : (
                 <EstadoPedidoTag estado={pedido.estado} />
-                {pedido.motivo_cancelacion && (
-                  <div>
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {pedido.motivo_cancelacion}
-                    </Typography.Text>
-                  </div>
-                )}
-              </div>
-            ),
+              ),
           },
           {
             title: 'Pago',
-            width: 190,
+            width: 200,
             render: (_, pedido: Pedido) => {
               // Un pedido cancelado no se cobra: solo se puede volver a "pendiente" si había quedado pagado.
               if (pedido.estado === 'CANCELADO' && pedido.pagado === 'PENDIENTE') {
                 return <Typography.Text type="secondary">—</Typography.Text>;
               }
-              const siguiente: EstadoPago = pedido.pagado === 'PAGADO' ? 'PENDIENTE' : 'PAGADO';
-              return (
-                <Flex align="center" gap={4} wrap>
-                  <EstadoPagoTag pagado={pedido.pagado} />
-                  <Popconfirm
-                    title={siguiente === 'PAGADO' ? `¿Marcar el pedido #${pedido.id_pedido} como pagado?` : `¿Volver el pedido #${pedido.id_pedido} a pendiente de pago?`}
-                    okText="Sí"
-                    cancelText="No"
-                    onConfirm={() => cambiarPago(pedido, siguiente)}
-                  >
-                    <Button size="small" type="link" loading={cobrando === pedido.id_pedido} style={{ paddingInline: 0 }}>
-                      {siguiente === 'PAGADO' ? 'Marcar pagado' : 'Deshacer'}
+              if (pedido.pagado === 'PENDIENTE') {
+                return (
+                  <Flex align="center" gap={4} style={{ whiteSpace: 'nowrap' }}>
+                    <EstadoPagoTag pagado={pedido.pagado} corto />
+                    <Button
+                      size="small"
+                      type="link"
+                      loading={cobrando === pedido.id_pedido}
+                      style={{ paddingInline: 4 }}
+                      onClick={() => setACobrar(pedido)}
+                    >
+                      Marcar pagado
                     </Button>
-                  </Popconfirm>
-                </Flex>
+                  </Flex>
+                );
+              }
+              return (
+                <div>
+                  <Flex align="center" gap={4} style={{ whiteSpace: 'nowrap' }}>
+                    <EstadoPagoTag pagado={pedido.pagado} corto />
+                    <Popconfirm
+                      title={`¿Volver el pedido #${pedido.id_pedido} a pendiente de pago?`}
+                      okText="Sí"
+                      cancelText="No"
+                      onConfirm={() => cambiarPago(pedido, 'PENDIENTE')}
+                    >
+                      <Button size="small" type="link" loading={cobrando === pedido.id_pedido} style={{ paddingInline: 4 }}>
+                        Deshacer
+                      </Button>
+                    </Popconfirm>
+                  </Flex>
+                  {/* Los pagados antes del registro de medios no tienen medio. */}
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                    {pedido.medio_pago ? ETIQUETA_MEDIO_PAGO[pedido.medio_pago] : 'Medio sin registrar'}
+                  </Typography.Text>
+                </div>
               );
             },
           },
@@ -306,9 +366,16 @@ export function PedidoListView() {
             dataIndex: 'precio_total',
             width: 120,
             align: 'right',
-            render: (valor: string) => <span style={{ whiteSpace: 'nowrap' }}>{formatearMoneda(valor)}</span>,
+            render: (valor: string) => <strong style={{ whiteSpace: 'nowrap' }}>{formatearMoneda(valor)}</strong>,
           },
         ]}
+      />
+
+      <ElegirMedioPagoModal
+        pedido={aCobrar && { id_pedido: aCobrar.id_pedido, numero_mesa: aCobrar.mesa.numero_mesa, precio_total: aCobrar.precio_total }}
+        loading={aCobrar !== null && cobrando === aCobrar.id_pedido}
+        onCancel={() => setACobrar(null)}
+        onConfirm={(medio) => aCobrar && cambiarPago(aCobrar, 'PAGADO', medio)}
       />
     </div>
   );

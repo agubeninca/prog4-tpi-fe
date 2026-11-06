@@ -34,6 +34,15 @@
   padding: 16px;
 }
 
+/* En el celular (Safari de iPhone) los campos con letra menor a 16px hacen zoom al tocarlos
+   y desacomodan la pantalla. Con 16px no hay zoom y se sigue pudiendo agrandar con los dedos.
+   (!important porque algunos estilos de antd, como el del TextArea, son más específicos.) */
+.layout-cliente-content input,
+.layout-cliente-content textarea,
+.layout-cliente-content .ant-select-selector {
+  font-size: 16px !important;
+}
+
 @media (max-width: 576px) {
   .layout-content {
     margin: 12px;
