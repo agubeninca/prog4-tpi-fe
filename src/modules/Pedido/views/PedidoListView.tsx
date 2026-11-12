@@ -4,6 +4,7 @@ import { Alert, Button, Card, Col, DatePicker, Flex, Input, InputNumber, Popconf
 import Decimal from 'decimal.js';
 import dayjs, { type Dayjs } from 'dayjs';
 import { getErrorMessage } from '../../../shared/api';
+import { describirCuenta } from '../../../shared/cuit';
 import { formatearDni } from '../../../shared/dni';
 import { formatearMoneda } from '../../../shared/moneda';
 import { ElegirMedioPagoModal } from '../components/ElegirMedioPagoModal';
@@ -11,15 +12,16 @@ import { EstadoPagoTag } from '../components/EstadoPagoTag';
 import { EstadoPedidoTag } from '../components/EstadoPedidoTag';
 import {
   ETIQUETA_ESTADO,
+  ETIQUETA_FACTURACION,
   ETIQUETA_MEDIO_PAGO,
   ETIQUETA_PAGO,
   LIMITE_PEDIDOS,
   medioEnFrase,
   pedidoService,
+  type DatosCobro,
   type DetallePedido,
   type EstadoPago,
   type EstadoPedido,
-  type MedioPago,
   type Pedido,
 } from '../services/pedido.service';
 
@@ -94,10 +96,10 @@ export function PedidoListView() {
     };
   }, [pedidos]);
 
-  const cambiarPago = async (pedido: Pedido, pagado: EstadoPago, medio?: MedioPago) => {
+  const cambiarPago = async (pedido: Pedido, pagado: EstadoPago, cobro?: DatosCobro) => {
     setCobrando(pedido.id_pedido);
     try {
-      const actualizado = await pedidoService.cambiarPago(pedido.id_pedido, pagado, medio);
+      const actualizado = await pedidoService.cambiarPago(pedido.id_pedido, pagado, cobro);
       setDatos((actual) =>
         actual && {
           ...actual,
@@ -105,8 +107,10 @@ export function PedidoListView() {
         },
       );
       message.success(
-        medio
-          ? `Pedido #${pedido.id_pedido}: pagó con ${medioEnFrase(medio)}`
+        cobro
+          ? `Pedido #${pedido.id_pedido}: pagó con ${medioEnFrase(cobro.medio_pago)}${
+              cobro.facturacion === 'CUENTA' ? ` (${describirCuenta(cobro.cuenta_nombre, cobro.cuenta_cuit)})` : ''
+            }`
           : `Pedido #${pedido.id_pedido}: ${ETIQUETA_PAGO[pagado].toLowerCase()}`,
       );
       setACobrar(null);
@@ -163,8 +167,8 @@ export function PedidoListView() {
           />
           <Input.Search
             allowClear
-            placeholder="Cliente (nombre o DNI)"
-            style={{ width: 260 }}
+            placeholder="Cliente o cuenta (nombre, DNI o CUIT)"
+            style={{ width: 300 }}
             onSearch={(valor) => setBusqueda(valor.trim())}
           />
           <InputNumber
@@ -353,10 +357,20 @@ export function PedidoListView() {
                       </Button>
                     </Popconfirm>
                   </Flex>
-                  {/* Los pagados antes del registro de medios no tienen medio. */}
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  {/* Los pagados antes del registro de medios no tienen medio ni facturación. */}
+                  <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
                     {pedido.medio_pago ? ETIQUETA_MEDIO_PAGO[pedido.medio_pago] : 'Medio sin registrar'}
                   </Typography.Text>
+                  {pedido.facturacion && (
+                    <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', maxWidth: 220 }}>
+                      {pedido.facturacion === 'CUENTA'
+                        ? describirCuenta(pedido.cuenta_nombre, pedido.cuenta_cuit)
+                        : ETIQUETA_FACTURACION.CONSUMIDOR_FINAL}
+                    </Typography.Text>
+                  )}
+                  <Button size="small" type="link" style={{ padding: 0, height: 'auto', fontSize: 12 }} onClick={() => setACobrar(pedido)}>
+                    Corregir cobro
+                  </Button>
                 </div>
               );
             },
@@ -372,10 +386,18 @@ export function PedidoListView() {
       />
 
       <ElegirMedioPagoModal
-        pedido={aCobrar && { id_pedido: aCobrar.id_pedido, numero_mesa: aCobrar.mesa.numero_mesa, precio_total: aCobrar.precio_total }}
+        pedido={
+          aCobrar && {
+            id_pedido: aCobrar.id_pedido,
+            numero_mesa: aCobrar.mesa.numero_mesa,
+            precio_total: aCobrar.precio_total,
+            nombre_cliente: aCobrar.cliente.nombre,
+            cobro: aCobrar.pagado === 'PAGADO' ? aCobrar : undefined,
+          }
+        }
         loading={aCobrar !== null && cobrando === aCobrar.id_pedido}
         onCancel={() => setACobrar(null)}
-        onConfirm={(medio) => aCobrar && cambiarPago(aCobrar, 'PAGADO', medio)}
+        onConfirm={(cobro) => aCobrar && cambiarPago(aCobrar, 'PAGADO', cobro)}
       />
     </div>
   );

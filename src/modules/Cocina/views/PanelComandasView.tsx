@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PlusOutlined } from '@ant-design/icons';
+import axios from 'axios';
 import { Alert, Button, Spin, message, notification } from 'antd';
 import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore';
 import { getErrorMessage } from '../../../shared/api';
@@ -8,7 +9,8 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { puedeGestionarComandas } from '../../Auth/services/auth.service';
 import { CancelarPedidoModal } from '../../Pedido/components/CancelarPedidoModal';
 import { ElegirMedioPagoModal } from '../../Pedido/components/ElegirMedioPagoModal';
-import { medioEnFrase, pedidoService, type EstadoPago, type EstadoPedido, type MedioPago } from '../../Pedido/services/pedido.service';
+import { medioEnFrase, pedidoService, type DatosCobro, type EstadoPago, type EstadoPedido } from '../../Pedido/services/pedido.service';
+import { describirCuenta } from '../../../shared/cuit';
 import { CargarComandaModal } from '../components/CargarComandaModal';
 import { ComandaCard } from '../components/ComandaCard';
 import { aComanda, COLECCION_COMANDAS, type Comanda } from '../comanda';
@@ -17,6 +19,11 @@ import '../panel-comandas.css';
 const INTERVALO_RELOJ_MS = 30_000;
 /** Cuánto dura el resalte de una comanda recién llegada. */
 const DURACION_RESALTE_MS = 2_500;
+
+/** El pedido ya no existe en la base: el backend quitó su comanda del panel. */
+function esPedidoInexistente(error: unknown) {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
 
 const SIGUIENTE_ESTADO: Partial<Record<EstadoPedido, EstadoPedido>> = {
   PENDIENTE: 'EN_PREPARACION',
@@ -170,6 +177,9 @@ export function PanelComandasView() {
       }
     } catch (err) {
       message.error(getErrorMessage(err));
+      if (esPedidoInexistente(err)) {
+        setACancelar(null);
+      }
     } finally {
       setProcesando(null);
     }
@@ -185,18 +195,23 @@ export function PanelComandasView() {
     }
   };
 
-  const cambiarPago = async (comanda: Comanda, pagado: EstadoPago, medio?: MedioPago) => {
+  const cambiarPago = async (comanda: Comanda, pagado: EstadoPago, cobro?: DatosCobro) => {
     setProcesandoPago(comanda.id_pedido);
     try {
-      await pedidoService.cambiarPago(comanda.id_pedido, pagado, medio);
+      await pedidoService.cambiarPago(comanda.id_pedido, pagado, cobro);
       message.success(
-        medio
-          ? `Mesa ${comanda.numero_mesa}: pagó con ${medioEnFrase(medio)}`
+        cobro
+          ? `Mesa ${comanda.numero_mesa}: pagó con ${medioEnFrase(cobro.medio_pago)}${
+              cobro.facturacion === 'CUENTA' ? ` (${describirCuenta(cobro.cuenta_nombre, cobro.cuenta_cuit)})` : ''
+            }`
           : `Mesa ${comanda.numero_mesa}: pendiente de pago`,
       );
       setACobrar(null);
     } catch (err) {
       message.error(getErrorMessage(err));
+      if (esPedidoInexistente(err)) {
+        setACobrar(null);
+      }
     } finally {
       setProcesandoPago(null);
     }
@@ -273,6 +288,7 @@ export function PanelComandasView() {
                       onAvanzar={() => cambiarEstado(comanda.id_pedido, SIGUIENTE_ESTADO[comanda.estado]!)}
                       onCancelar={() => setACancelar(comanda.id_pedido)}
                       onCambiarPago={(pagado) => pedirCambioPago(comanda, pagado)}
+                      onCorregirCobro={() => setACobrar(comanda)}
                     />
                   ))}
                 </div>
@@ -286,10 +302,18 @@ export function PanelComandasView() {
       {cargandoManual && <CargarComandaModal onClose={() => setCargandoManual(false)} />}
       {!soloLectura && (
         <ElegirMedioPagoModal
-          pedido={aCobrar}
+          pedido={
+            aCobrar && {
+              id_pedido: aCobrar.id_pedido,
+              numero_mesa: aCobrar.numero_mesa,
+              precio_total: aCobrar.precio_total,
+              nombre_cliente: aCobrar.cliente.nombre,
+              cobro: aCobrar.pagado === 'PAGADO' ? aCobrar : undefined,
+            }
+          }
           loading={aCobrar !== null && procesandoPago === aCobrar.id_pedido}
           onCancel={() => setACobrar(null)}
-          onConfirm={(medio) => aCobrar && cambiarPago(aCobrar, 'PAGADO', medio)}
+          onConfirm={(cobro) => aCobrar && cambiarPago(aCobrar, 'PAGADO', cobro)}
         />
       )}
       {!soloLectura && (

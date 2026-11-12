@@ -2,7 +2,8 @@ import { CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, Fire
 import { Button, Segmented } from 'antd';
 import dayjs from 'dayjs';
 import { formatearMoneda } from '../../../shared/moneda';
-import { medioEnFrase, type EstadoPago } from '../../Pedido/services/pedido.service';
+import { describirCuenta } from '../../../shared/cuit';
+import { ETIQUETA_FACTURACION, medioEnFrase, type EstadoPago } from '../../Pedido/services/pedido.service';
 import type { Comanda } from '../comanda';
 
 interface ComandaCardProps {
@@ -20,6 +21,8 @@ interface ComandaCardProps {
   onAvanzar: () => void;
   onCancelar: () => void;
   onCambiarPago?: (pagado: EstadoPago) => void;
+  /** Ya pagada: reabre el cobro para corregir el medio o los datos de la cuenta. */
+  onCorregirCobro?: () => void;
 }
 
 /** Más de 15 minutos sin servirse: se resalta. */
@@ -49,6 +52,7 @@ export function ComandaCard({
   onAvanzar,
   onCancelar,
   onCambiarPago,
+  onCorregirCobro,
 }: ComandaCardProps) {
   const ingreso = dayjs(comanda.fecha_hora_ingreso);
   const minutos = Math.max(0, dayjs(ahora).diff(ingreso, 'minute'));
@@ -111,8 +115,28 @@ export function ComandaCard({
                 aria-label="Estado de pago"
               />
             )}
-            {pagado === 'PAGADO' && comanda.medio_pago && (
-              <span className="comanda__medio">Pagó con {medioEnFrase(comanda.medio_pago)}</span>
+            {pagado === 'PAGADO' && (comanda.medio_pago || comanda.facturacion) && (
+              <span className="comanda__medio">
+                {comanda.medio_pago && <>Pagó con {medioEnFrase(comanda.medio_pago)}</>}
+                {comanda.facturacion && (
+                  <span className="comanda__cuenta">
+                    {comanda.facturacion === 'CUENTA'
+                      ? describirCuenta(comanda.cuenta_nombre, comanda.cuenta_cuit)
+                      : ETIQUETA_FACTURACION.CONSUMIDOR_FINAL}
+                  </span>
+                )}
+              </span>
+            )}
+            {pagado === 'PAGADO' && onCorregirCobro && (
+              <Button
+                type="link"
+                size="small"
+                className="comanda__corregir-cobro"
+                disabled={procesandoPago}
+                onClick={onCorregirCobro}
+              >
+                Corregir cobro
+              </Button>
             )}
           </div>
         )}

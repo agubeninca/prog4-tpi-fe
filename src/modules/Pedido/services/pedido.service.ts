@@ -47,6 +47,24 @@ export function medioEnFrase(medio: MedioPago) {
   return medio === 'MERCADO_PAGO' ? ETIQUETA_MEDIO_PAGO[medio] : ETIQUETA_MEDIO_PAGO[medio].toLowerCase();
 }
 
+/** A quién se le cobró: consumidor final o una cuenta (nombre / razón social y CUIT). */
+export type Facturacion = 'CONSUMIDOR_FINAL' | 'CUENTA';
+
+export const ETIQUETA_FACTURACION: Record<Facturacion, string> = {
+  CONSUMIDOR_FINAL: 'Consumidor final',
+  CUENTA: 'Cuenta',
+};
+
+/** Datos que se registran al cobrar (o al corregir un cobro). */
+export interface DatosCobro {
+  medio_pago: MedioPago;
+  facturacion: Facturacion;
+  /** Solo para una cuenta: nombre o razón social (obligatorio). */
+  cuenta_nombre?: string;
+  /** Solo para una cuenta: 11 dígitos, opcional. */
+  cuenta_cuit?: string;
+}
+
 /** QR: lo hizo el cliente desde la mesa. MANUAL: lo cargó la Barra. */
 export type OrigenPedido = 'QR' | 'MANUAL';
 
@@ -68,6 +86,9 @@ export interface Pedido {
   estado: EstadoPedido;
   pagado: EstadoPago;
   medio_pago: MedioPago | null;
+  facturacion: Facturacion | null;
+  cuenta_nombre: string | null;
+  cuenta_cuit: string | null;
   origen: OrigenPedido;
   motivo_cancelacion: string | null;
   precio_total: string;
@@ -122,7 +143,7 @@ export const pedidoService = {
   crearManual: (pedido: NuevoPedidoManual) => api.post<Pedido>('/pedidos/manual', pedido).then((res) => res.data),
   getRegistroManual: (filtro: { desde?: string; hasta?: string } = {}) =>
     api.get<RegistroComandaManual[]>('/pedidos/manuales', { params: filtro }).then((res) => res.data),
-  /** `medio_pago` es obligatorio al marcarlo pagado. */
-  cambiarPago: (id: number, pagado: EstadoPago, medio_pago?: MedioPago) =>
-    api.patch<Pedido>(`/pedidos/${id}/pago`, { pagado, medio_pago }).then((res) => res.data),
+  /** Al marcarlo pagado van los datos del cobro (el medio es obligatorio). Pagado, sirve también para corregirlos. */
+  cambiarPago: (id: number, pagado: EstadoPago, cobro?: DatosCobro) =>
+    api.patch<Pedido>(`/pedidos/${id}/pago`, { pagado, ...cobro }).then((res) => res.data),
 };

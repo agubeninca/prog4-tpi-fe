@@ -338,6 +338,18 @@
   color: #136c3a;
 }
 
+.comanda__cuenta {
+  display: block;
+  color: #4b5563;
+  overflow-wrap: anywhere;
+}
+
+.comanda__corregir-cobro.ant-btn {
+  height: auto;
+  padding: 0;
+  font-size: 12.5px;
+}
+
 .comanda__selector-pago--pendiente .ant-segmented-item-selected {
   background: var(--cobro-fondo) !important;
   color: var(--cobro-texto) !important;
