@@ -1,5 +1,6 @@
 import { api } from '../../../shared/api';
 import { PUBLIC_APP_URL } from '../../../shared/entorno';
+import type { MozoResumen } from '../../Mozo/services/mozo.service';
 
 export interface Mesa {
   id_mesa: number;
@@ -9,6 +10,13 @@ export interface Mesa {
   archivado: boolean;
   fecha_creacion: string;
   fecha_actualizacion: string;
+}
+
+/** Mesa habilitada para cargar comandas, con el mozo que la atiende ahora (null: libre). */
+export interface MesaActiva {
+  id_mesa: number;
+  numero_mesa: number;
+  mozo: MozoResumen | null;
 }
 
 export interface MesaInput {
@@ -23,8 +31,8 @@ export function urlMesa(hashCodigoQr: string) {
 
 export const mesaService = {
   getAll: () => api.get<Mesa[]>('/mesas').then((res) => res.data),
-  /** Mesas habilitadas (lo usa la Barra para cargar comandas a mano). */
-  getActivas: () => api.get<Pick<Mesa, 'id_mesa' | 'numero_mesa'>[]>('/mesas/activas').then((res) => res.data),
+  /** Mesas habilitadas y quién las atiende (lo usa la Barra para cargar comandas a mano). */
+  getActivas: () => api.get<MesaActiva[]>('/mesas/activas').then((res) => res.data),
   create: (data: MesaInput) => api.post<Mesa>('/mesas', data).then((res) => res.data),
   update: (id: number, data: MesaInput) => api.patch<Mesa>(`/mesas/${id}`, data).then((res) => res.data),
   remove: (id: number) => api.delete(`/mesas/${id}`),

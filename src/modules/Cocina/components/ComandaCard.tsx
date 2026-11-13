@@ -81,6 +81,7 @@ export function ComandaCard({
               <span>Pedido #{comanda.id_pedido}</span>
               <span>Entró {ingreso.format('HH:mm')}</span>
               {comanda.origen === 'MANUAL' && <span className="comanda__manual">Carga manual</span>}
+              {comanda.mozo && <span className="comanda__mozo">Mozo: {comanda.mozo}</span>}
             </div>
           </div>
           <span className="comanda__reloj" title={demorada ? `Lleva más de ${MINUTOS_DEMORA} minutos` : 'Tiempo desde que entró'}>

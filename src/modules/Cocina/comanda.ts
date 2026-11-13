@@ -8,6 +8,8 @@ export interface Comanda {
   id_pedido: number;
   numero_mesa: number;
   cliente: { dni: string; nombre: string };
+  /** Mozo que atiende la mesa (comandas manuales). Falta en las comandas anteriores a los mozos. */
+  mozo?: string | null;
   estado: EstadoPedido;
   /** Puede faltar en comandas anteriores a la carga manual. */
   origen?: OrigenPedido;

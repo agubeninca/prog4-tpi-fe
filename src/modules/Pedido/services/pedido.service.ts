@@ -1,4 +1,5 @@
 import { api } from '../../../shared/api';
+import type { MozoResumen } from '../../Mozo/services/mozo.service';
 
 export type EstadoPedido = 'PENDIENTE' | 'EN_PREPARACION' | 'SERVIDO' | 'CANCELADO';
 
@@ -95,6 +96,9 @@ export interface Pedido {
   fecha_actualizacion: string;
   mesa: { id_mesa: number; numero_mesa: number };
   cliente: { dni: string; nombre: string };
+  /** Mozo que atendió la mesa (solo en comandas manuales). */
+  id_mozo: number | null;
+  mozo: MozoResumen | null;
   detalle_pedido: DetallePedido[];
 }
 
@@ -113,6 +117,8 @@ export interface FiltroPedidos {
 
 export interface NuevoPedidoManual {
   id_mesa: number;
+  /** Mozo que atiende la mesa: la mesa queda a su nombre hasta que se pague o cancele todo. */
+  id_mozo: number;
   dni: string;
   /** Solo si el cliente es nuevo; si el DNI ya está registrado se ignora. */
   nombre?: string;

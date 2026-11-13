@@ -26,6 +26,7 @@ export const ProductoListView = lazy(() =>
   import('./modules/Producto/views/ProductoListView').then((m) => ({ default: m.ProductoListView })),
 );
 export const MesaListView = lazy(() => import('./modules/Mesa/views/MesaListView').then((m) => ({ default: m.MesaListView })));
+export const MozoListView = lazy(() => import('./modules/Mozo/views/MozoListView').then((m) => ({ default: m.MozoListView })));
 export const ReviewListView = lazy(() => import('./modules/Review/views/ReviewListView').then((m) => ({ default: m.ReviewListView })));
 export const UsuarioListView = lazy(() =>
   import('./modules/Usuario/views/UsuarioListView').then((m) => ({ default: m.UsuarioListView })),

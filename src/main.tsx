@@ -24,6 +24,7 @@ import {
   LoginView,
   MenuView,
   MesaListView,
+  MozoListView,
   PedidoListView,
   PanelComandasView,
   PedidoEstadoView,
@@ -95,6 +96,7 @@ ReactDOM.createRoot(root).render(
               <Route path="categorias" element={<CategoriaListView />} />
               <Route path="productos" element={<ProductoListView />} />
               <Route path="mesas" element={<MesaListView />} />
+              <Route path="mozos" element={<MozoListView />} />
               <Route path="pedidos" element={<PedidoListView />} />
               <Route path="clientes" element={<ClienteListView />} />
               <Route path="reviews" element={<ReviewListView />} />

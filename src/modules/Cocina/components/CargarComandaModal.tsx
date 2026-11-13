@@ -7,11 +7,31 @@ import { getErrorMessage } from '../../../shared/api';
 import { limpiarDni } from '../../../shared/dni';
 import { formatearMoneda } from '../../../shared/moneda';
 import { clienteMesaService, type CategoriaMenu, type ConsultaDni, type ProductoMenu } from '../../ClienteMesa/services/clienteMesa.service';
-import { mesaService } from '../../Mesa/services/mesa.service';
+import { mesaService, type MesaActiva } from '../../Mesa/services/mesa.service';
+import { mozoService, type Mozo } from '../../Mozo/services/mozo.service';
 import { pedidoService, type Pedido } from '../../Pedido/services/pedido.service';
 
 const DNI_VALIDO = /^\d{7,8}$/;
 const CANTIDAD_MAXIMA = 50;
+/** El último mozo elegido se propone la próxima vez (suele cargar varias comandas seguidas). */
+const CLAVE_ULTIMO_MOZO = 'kitch.ultimoMozo';
+
+function leerUltimoMozo(): number | undefined {
+  try {
+    const valor = Number(localStorage.getItem(CLAVE_ULTIMO_MOZO));
+    return Number.isInteger(valor) && valor > 0 ? valor : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function guardarUltimoMozo(idMozo: number) {
+  try {
+    localStorage.setItem(CLAVE_ULTIMO_MOZO, String(idMozo));
+  } catch {
+    // Sin almacenamiento (ej. modo privado): solo no se recuerda.
+  }
+}
 
 interface CargarComandaModalProps {
   onClose: () => void;
@@ -19,6 +39,7 @@ interface CargarComandaModalProps {
 }
 
 interface DatosComanda {
+  id_mozo: number;
   id_mesa: number;
   dni: string;
   nombre?: string;
@@ -30,11 +51,16 @@ interface Linea {
   cantidad: number;
 }
 
-/** La Barra carga a mano la comanda de un cliente que no usa el QR (ej. personas mayores). */
+/**
+ * La Barra carga a mano la comanda de un cliente que no usa el QR (ej. personas mayores),
+ * a nombre del mozo que atiende la mesa.
+ */
 export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProps) {
   const [form] = Form.useForm<DatosComanda>();
   const dni = Form.useWatch('dni', form) ?? '';
-  const [mesas, setMesas] = useState<{ id_mesa: number; numero_mesa: number }[] | null>(null);
+  const idMozo = Form.useWatch('id_mozo', form);
+  const [mesas, setMesas] = useState<MesaActiva[] | null>(null);
+  const [mozos, setMozos] = useState<Mozo[] | null>(null);
   const [menu, setMenu] = useState<CategoriaMenu[] | null>(null);
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const [consulta, setConsulta] = useState<{ dni: string; resultado: ConsultaDni } | null>(null);
@@ -48,13 +74,32 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
       .then(setMenu)
       .catch((error: unknown) => setErrorCarga(getErrorMessage(error)));
 
-  useEffect(() => {
+  const cargarMesas = () =>
     mesaService
       .getActivas()
       .then(setMesas)
       .catch((error: unknown) => setErrorCarga(getErrorMessage(error)));
+
+  useEffect(() => {
+    void cargarMesas();
+    mozoService
+      .getAll()
+      .then((todos) => setMozos(todos.filter((mozo) => mozo.activo)))
+      .catch((error: unknown) => setErrorCarga(getErrorMessage(error)));
     void cargarMenu();
   }, []);
+
+  // La mesa que atiende otro mozo no se puede elegir (se ve, pero deshabilitada).
+  const atendidaPorOtro = (mesa: MesaActiva) => !!mesa.mozo && idMozo !== undefined && mesa.mozo.id_mozo !== idMozo;
+  const opcionesMesa = (mesas ?? []).map((mesa) => ({
+    value: mesa.id_mesa,
+    disabled: atendidaPorOtro(mesa),
+    label: mesa.mozo ? `Mesa ${mesa.numero_mesa} · ${mesa.mozo.nombre}` : `Mesa ${mesa.numero_mesa}`,
+  }));
+  const ultimoMozo = useMemo(() => {
+    const id = leerUltimoMozo();
+    return mozos?.some((mozo) => mozo.id_mozo === id) ? id : undefined;
+  }, [mozos]);
 
   // Con un DNI completo se averigua si el cliente ya existe: si es nuevo, hay que pedirle el nombre.
   useEffect(() => {
@@ -107,7 +152,7 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
 
   const quitar = (idProducto: number) => setLineas((actuales) => actuales.filter((linea) => linea.producto.id_producto !== idProducto));
 
-  const confirmar = async ({ id_mesa, nombre, observacion }: DatosComanda) => {
+  const confirmar = async ({ id_mozo, id_mesa, nombre, observacion }: DatosComanda) => {
     if (lineas.length === 0) {
       message.warning('Agregá al menos un producto');
       return;
@@ -115,13 +160,17 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
     setGuardando(true);
     try {
       const pedido = await pedidoService.crearManual({
+        id_mozo,
         id_mesa,
         dni,
         nombre: clienteNuevo ? nombre?.trim() : undefined,
         observacion: observacion?.trim() || undefined,
         items: lineas.map((linea) => ({ id_producto: linea.producto.id_producto, cantidad: linea.cantidad })),
       });
-      message.success(`Comanda #${pedido.id_pedido} cargada para la mesa ${pedido.mesa.numero_mesa}`);
+      guardarUltimoMozo(id_mozo);
+      message.success(
+        `Comanda #${pedido.id_pedido} cargada para la mesa ${pedido.mesa.numero_mesa}${pedido.mozo ? ` (${pedido.mozo.nombre})` : ''}`,
+      );
       onCreada?.(pedido);
       onClose();
     } catch (error) {
@@ -133,13 +182,17 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
         quitar(idNoDisponible);
         void cargarMenu();
       }
+      // Otro mozo tomó la mesa mientras tanto: se actualiza quién atiende cada una.
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        void cargarMesas();
+      }
       message.error(getErrorMessage(error));
     } finally {
       setGuardando(false);
     }
   };
 
-  const cargando = !errorCarga && (!mesas || !menu);
+  const cargando = !errorCarga && (!mesas || !menu || !mozos);
 
   return (
     <Modal
@@ -159,15 +212,55 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
           <Spin />
         </Flex>
       ) : (
-        <Form form={form} layout="vertical" onFinish={confirmar} requiredMark={false}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={confirmar}
+          requiredMark={false}
+          initialValues={{ id_mozo: ultimoMozo }}
+        >
+          {mozos?.length === 0 && (
+            <Alert
+              type="warning"
+              showIcon
+              title="No hay mozos activos. Agregalos o activalos desde la pestaña Mozos del panel de Admin."
+              style={{ marginBottom: 16 }}
+            />
+          )}
           <Flex gap={12} wrap>
-            <Form.Item name="id_mesa" label="Mesa" rules={[{ required: true, message: 'Elegí la mesa' }]} style={{ width: 140 }}>
+            <Form.Item
+              name="id_mozo"
+              label="Mozo"
+              rules={[{ required: true, message: 'Elegí el mozo' }]}
+              style={{ width: 180 }}
+            >
               <Select
                 showSearch
                 optionFilterProp="label"
-                placeholder="N.º"
-                options={(mesas ?? []).map((mesa) => ({ value: mesa.id_mesa, label: `Mesa ${mesa.numero_mesa}` }))}
+                placeholder="¿Quién atiende?"
+                options={(mozos ?? []).map((mozo) => ({ value: mozo.id_mozo, label: mozo.nombre }))}
+                notFoundContent="No hay mozos activos"
               />
+            </Form.Item>
+            <Form.Item
+              name="id_mesa"
+              label="Mesa"
+              dependencies={['id_mozo']}
+              rules={[
+                { required: true, message: 'Elegí la mesa' },
+                {
+                  validator: (_, idMesa?: number) => {
+                    const mesa = mesas?.find((m) => m.id_mesa === idMesa);
+                    return mesa?.mozo && atendidaPorOtro(mesa)
+                      ? Promise.reject(new Error(`La atiende ${mesa.mozo.nombre}`))
+                      : Promise.resolve();
+                  },
+                },
+              ]}
+              style={{ width: 200 }}
+              extra="Las mesas de otro mozo no se pueden elegir hasta que se cobren."
+            >
+              <Select showSearch optionFilterProp="label" placeholder="N.º" options={opcionesMesa} />
             </Form.Item>
             <Form.Item
               name="dni"
@@ -186,7 +279,7 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
                     : undefined
               }
             >
-              <Input inputMode="numeric" placeholder="Ej.: 30123456" autoFocus />
+              <Input inputMode="numeric" placeholder="Ej.: 30123456" />
             </Form.Item>
           </Flex>
 

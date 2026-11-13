@@ -283,6 +283,12 @@ export function PedidoListView() {
           },
           { title: 'Mesa', width: 70, align: 'center', render: (_, pedido: Pedido) => pedido.mesa.numero_mesa },
           {
+            title: 'Mozo',
+            width: 110,
+            render: (_, pedido: Pedido) =>
+              pedido.mozo ? pedido.mozo.nombre : <Typography.Text type="secondary">—</Typography.Text>,
+          },
+          {
             title: 'Cliente',
             ellipsis: true,
             render: (_, pedido: Pedido) => (

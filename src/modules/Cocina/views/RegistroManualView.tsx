@@ -109,6 +109,12 @@ export function RegistroManualView() {
             ),
           },
           {
+            title: 'Mozo',
+            width: 110,
+            render: (_, registro: RegistroComandaManual) =>
+              registro.pedido.mozo ? registro.pedido.mozo.nombre : <Typography.Text type="secondary">—</Typography.Text>,
+          },
+          {
             title: 'Cargada por',
             width: 160,
             render: (_, registro: RegistroComandaManual) => (

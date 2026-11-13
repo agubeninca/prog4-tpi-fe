@@ -255,6 +255,14 @@
   font-weight: 600;
 }
 
+.comanda__mozo {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e6f0ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
 .comanda__reloj {
   flex-shrink: 0;
   display: inline-flex;
