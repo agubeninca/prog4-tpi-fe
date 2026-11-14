@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { PictureOutlined, UploadOutlined } from '@ant-design/icons';
+import { DeleteOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons';
 import { Button, Image, Modal, Popconfirm, Select, Space, Switch, Table, Typography, Upload, message } from 'antd';
 import { getErrorMessage } from '../../../shared/api';
+import { BotonesOrden } from '../../../shared/BotonesOrden';
+import { moverElemento } from '../../../shared/moverElemento';
 import { urlImagen } from '../../../shared/firebase';
 import { formatearMoneda } from '../../../shared/moneda';
 import { reemplazarProducto, useProductoStore } from '../../../stores/producto.store';
@@ -27,7 +29,9 @@ export function ProductoListView() {
   const [saving, setSaving] = useState(false);
   const [imagenProducto, setImagenProducto] = useState<Producto | null>(null);
   const [subiendoImagen, setSubiendoImagen] = useState(false);
+  const [eliminandoImagen, setEliminandoImagen] = useState(false);
   const [pausando, setPausando] = useState<number | null>(null);
+  const [ordenando, setOrdenando] = useState(false);
 
   useEffect(() => {
     Promise.all([fetchAll(), fetchCategorias()]).catch((error: unknown) => message.error(getErrorMessage(error)));
@@ -37,6 +41,23 @@ export function ProductoListView() {
     () => (filtroCategoria ? items.filter((producto) => producto.id_categoria === filtroCategoria) : items),
     [items, filtroCategoria],
   );
+
+  // El orden es dentro de cada categoría (así lo ve el cliente en el menú): se habilita al filtrar por una.
+  const moverProducto = async (indice: number, delta: number) => {
+    if (!filtroCategoria) return;
+    setOrdenando(true);
+    try {
+      await productoService.ordenar(
+        filtroCategoria,
+        moverElemento(productosFiltrados, indice, delta).map((producto) => producto.id_producto),
+      );
+      await fetchAll();
+    } catch (error) {
+      message.error(getErrorMessage(error));
+    } finally {
+      setOrdenando(false);
+    }
+  };
 
   const abrirNuevo = () => {
     setEditing(null);
@@ -90,6 +111,20 @@ export function ProductoListView() {
     }
   };
 
+  const handleEliminarImagen = async () => {
+    if (!imagenProducto) return;
+    setEliminandoImagen(true);
+    try {
+      reemplazarProducto(await productoService.eliminarImagen(imagenProducto.id_producto));
+      message.success('Imagen eliminada');
+      setImagenProducto(null);
+    } catch (error) {
+      message.error(getErrorMessage(error));
+    } finally {
+      setEliminandoImagen(false);
+    }
+  };
+
   const handleSubirImagen = async (archivo: File) => {
     if (!imagenProducto) return false;
     setSubiendoImagen(true);
@@ -133,6 +168,20 @@ export function ProductoListView() {
         scroll={{ x: 'max-content' }}
         locale={{ emptyText: 'No hay productos' }}
         columns={[
+          {
+            title: 'Orden',
+            width: 90,
+            render: (_, __: Producto, indice: number) => (
+              <BotonesOrden
+                indice={indice}
+                total={productosFiltrados.length}
+                cargando={ordenando}
+                deshabilitadoPor={filtroCategoria ? undefined : 'Elegí una categoría para ordenar sus productos'}
+                onSubir={() => void moverProducto(indice, -1)}
+                onBajar={() => void moverProducto(indice, 1)}
+              />
+            ),
+          },
           {
             title: 'Imagen',
             width: 80,
@@ -244,16 +293,32 @@ export function ProductoListView() {
         <Typography.Paragraph type="secondary">
           JPG, PNG, WEBP o GIF de hasta 5 MB. Se redimensiona a 800 px y se guarda en WEBP.
         </Typography.Paragraph>
-        <Upload
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          maxCount={1}
-          showUploadList={false}
-          beforeUpload={handleSubirImagen}
-        >
-          <Button icon={<UploadOutlined />} loading={subiendoImagen}>
-            Seleccionar imagen
-          </Button>
-        </Upload>
+        <Space wrap>
+          <Upload
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            maxCount={1}
+            showUploadList={false}
+            beforeUpload={handleSubirImagen}
+          >
+            <Button icon={<UploadOutlined />} loading={subiendoImagen} disabled={eliminandoImagen}>
+              {imagenProducto?.ruta_imagen ? 'Cambiar imagen' : 'Seleccionar imagen'}
+            </Button>
+          </Upload>
+          {imagenProducto?.ruta_imagen && (
+            <Popconfirm
+              title="¿Eliminar la imagen?"
+              description="El producto queda sin imagen. Se puede subir otra después."
+              okText="Eliminar"
+              okButtonProps={{ danger: true }}
+              cancelText="Cancelar"
+              onConfirm={handleEliminarImagen}
+            >
+              <Button danger icon={<DeleteOutlined />} loading={eliminandoImagen} disabled={subiendoImagen}>
+                Eliminar imagen
+              </Button>
+            </Popconfirm>
+          )}
+        </Space>
       </Modal>
     </div>
   );

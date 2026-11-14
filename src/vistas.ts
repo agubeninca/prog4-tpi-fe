@@ -40,3 +40,10 @@ export const ErrorListView = lazy(() =>
 export const PedidoListView = lazy(() =>
   import('./modules/Pedido/views/PedidoListView').then((m) => ({ default: m.PedidoListView })),
 );
+export const MisPedidosView = lazy(() =>
+  import('./modules/ClienteMesa/views/MisPedidosView').then((m) => ({ default: m.MisPedidosView })),
+);
+export const CajaView = lazy(() => import('./modules/Caja/views/CajaView').then((m) => ({ default: m.CajaView })));
+export const EstadisticasView = lazy(() =>
+  import('./modules/Estadisticas/views/EstadisticasView').then((m) => ({ default: m.EstadisticasView })),
+);

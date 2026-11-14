@@ -372,12 +372,20 @@
 
 .comanda__acciones {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 2px;
 }
 
+/* Volver y Cancelar: van juntos y alineados a la derecha, también cuando bajan a su propia línea. */
+.comanda__secundarias {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
 .comanda__accion {
-  flex: 1;
+  flex: 1 1 150px;
   height: 44px !important;
   border: none !important;
   font-weight: 600 !important;
@@ -414,6 +422,16 @@
 .comanda__cancelar {
   height: 44px !important;
   color: var(--tinta-suave) !important;
+}
+
+.comanda__retroceder {
+  height: 44px !important;
+  color: var(--tinta-suave) !important;
+}
+
+.comanda__retroceder:hover:not(:disabled) {
+  color: var(--preparacion-texto) !important;
+  background: var(--preparacion-fondo) !important;
 }
 
 .comanda__cancelar:hover:not(:disabled) {

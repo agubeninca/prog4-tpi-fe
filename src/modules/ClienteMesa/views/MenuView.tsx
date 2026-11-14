@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ProfileOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { Button, Col, Empty, FloatButton, Result, Row, Skeleton, Tabs, Typography, message } from 'antd';
+import { HistoryOutlined, ProfileOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Button, Col, Empty, Flex, FloatButton, Result, Row, Skeleton, Tabs, Typography, message } from 'antd';
 import { useNavigate, useParams } from 'react-router';
 import { getErrorMessage } from '../../../shared/api';
 import { cantidadEnCarrito, useCarritoStore } from '../../../stores/carrito.store';
@@ -44,16 +44,16 @@ export function MenuView() {
         {cliente?.nombre ? `Hola, ${cliente.nombre}` : '¡Hola de nuevo!'}
       </Typography.Title>
       <Typography.Paragraph type="secondary">Elegí lo que quieras pedir.</Typography.Paragraph>
-      {ultimoPedido && (
-        <Button
-          block
-          icon={<ProfileOutlined />}
-          style={{ marginBottom: 16 }}
-          onClick={() => navigate(`/m/${hash}/pedido/${ultimoPedido}`)}
-        >
-          Ver mi pedido #{ultimoPedido}
+      <Flex gap={8} wrap style={{ marginBottom: 16 }}>
+        <Button icon={<HistoryOutlined />} style={{ flex: 1 }} onClick={() => navigate(`/m/${hash}/mis-pedidos`)}>
+          Mis pedidos
         </Button>
-      )}
+        {ultimoPedido && (
+          <Button icon={<ProfileOutlined />} style={{ flex: 1 }} onClick={() => navigate(`/m/${hash}/pedido/${ultimoPedido}`)}>
+            Ver pedido #{ultimoPedido}
+          </Button>
+        )}
+      </Flex>
 
       {!menu ? (
         <Skeleton active paragraph={{ rows: 6 }} />

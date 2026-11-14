@@ -1,0 +1,16 @@
+/* Colores de marca como variables CSS. Mantener iguales a los de `marca.ts` (para el CSS propio;
+   Ant Design toma los suyos de `temaAntd`). Para otro negocio: cambiar la paleta en los dos archivos. */
+:root {
+  --marca-verde: #00764a;
+  --marca-verde-oscuro: #004d30;
+  --marca-verde-suave: #e6f2ed;
+  --marca-rojo: #ed1c24;
+  --marca-coral: #fb6962;
+  --marca-negro: #000000;
+}
+
+/* Franja fina de dos colores (verde y rojo) para marcar el borde superior de una tarjeta o pantalla. */
+.franja-marca {
+  height: 4px;
+  background: linear-gradient(to right, var(--marca-verde) 0 62%, var(--marca-rojo) 62% 100%);
+}

@@ -15,6 +15,7 @@ const TITULO_POR_ROL = {
 const SECCIONES = [
   { ruta: '/cocina', etiqueta: 'Comandas' },
   { ruta: '/cocina/manuales', etiqueta: 'Registro manual' },
+  { ruta: '/cocina/caja', etiqueta: 'Cierre de caja' },
 ];
 
 export function CocinaLayout() {

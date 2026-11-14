@@ -8,6 +8,7 @@ import { formatearMoneda } from '../../../shared/moneda';
 import { useSesionClienteStore } from '../../../stores/sesionCliente.store';
 import { ESTADOS_FINALES, type EstadoPedido } from '../../Pedido/services/pedido.service';
 import { ReviewForm } from '../components/ReviewForm';
+import { useSeguimientoStore } from '../seguimiento.store';
 import { clienteMesaService, type PedidoCliente } from '../services/clienteMesa.service';
 
 const INTERVALO_ACTUALIZACION_MS = 10_000;
@@ -28,6 +29,8 @@ export function PedidoEstadoView() {
   /** Se incrementa para volver a consultar el pedido (polling o review nueva). */
   const [consultas, setConsultas] = useState(0);
   const recargar = () => setConsultas((n) => n + 1);
+  // Cuando llega un cambio en vivo (SSE), el pedido se vuelve a consultar al instante.
+  const estadoEnVivo = useSeguimientoStore((state) => state.estados[idPedido]?.estado);
 
   useEffect(() => {
     if (!cliente) return;
@@ -43,9 +46,9 @@ export function PedidoEstadoView() {
     return () => {
       vigente = false;
     };
-  }, [cliente, idPedido, consultas]);
+  }, [cliente, idPedido, consultas, estadoEnVivo]);
 
-  // Mientras el pedido no termine, se consulta su estado cada 10 segundos.
+  // Respaldo por si el canal en vivo se corta: se consulta el estado cada 10 segundos.
   const terminado = pedido ? ESTADOS_FINALES.includes(pedido.estado) : false;
   useEffect(() => {
     if (terminado) return;

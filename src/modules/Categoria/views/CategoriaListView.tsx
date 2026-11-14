@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Button, Modal, Popconfirm, Space, Table, message } from 'antd';
 import { getErrorMessage } from '../../../shared/api';
+import { BotonesOrden } from '../../../shared/BotonesOrden';
+import { moverElemento } from '../../../shared/moverElemento';
 import { useCategoriaStore } from '../../../stores/categoria.store';
 import { CategoriaForm } from '../components/CategoriaForm';
-import type { Categoria, CategoriaInput } from '../services/categoria.service';
+import { categoriaService, type Categoria, type CategoriaInput } from '../services/categoria.service';
 
 export function CategoriaListView() {
   const { items, loading, fetchAll, create, update, remove } = useCategoriaStore();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Categoria | null>(null);
   const [saving, setSaving] = useState(false);
+  const [ordenando, setOrdenando] = useState(false);
 
   useEffect(() => {
     fetchAll().catch((error: unknown) => message.error(getErrorMessage(error)));
@@ -43,6 +46,19 @@ export function CategoriaListView() {
     }
   };
 
+  // El orden de las categorías es el del menú que ve el cliente.
+  const mover = async (indice: number, delta: number) => {
+    setOrdenando(true);
+    try {
+      await categoriaService.ordenar(moverElemento(items, indice, delta).map((categoria) => categoria.id_categoria));
+      await fetchAll();
+    } catch (error) {
+      message.error(getErrorMessage(error));
+    } finally {
+      setOrdenando(false);
+    }
+  };
+
   const handleRemove = async (id: number) => {
     try {
       await remove(id);
@@ -67,6 +83,19 @@ export function CategoriaListView() {
         scroll={{ x: 'max-content' }}
         locale={{ emptyText: 'Todavía no hay categorías' }}
         columns={[
+          {
+            title: 'Orden',
+            width: 90,
+            render: (_, __: Categoria, indice: number) => (
+              <BotonesOrden
+                indice={indice}
+                total={items.length}
+                cargando={ordenando}
+                onSubir={() => void mover(indice, -1)}
+                onBajar={() => void mover(indice, 1)}
+              />
+            ),
+          },
           { title: 'Nombre', dataIndex: 'nombre', width: 200 },
           { title: 'Descripción', dataIndex: 'descripcion', render: (valor: string | null) => valor ?? '—' },
           {

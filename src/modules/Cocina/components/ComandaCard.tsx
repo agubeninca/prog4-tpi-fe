@@ -1,5 +1,5 @@
-import { CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, FireOutlined } from '@ant-design/icons';
-import { Button, Segmented } from 'antd';
+import { CheckOutlined, ClockCircleOutlined, CloseOutlined, DollarOutlined, FireOutlined, UndoOutlined } from '@ant-design/icons';
+import { Button, Popconfirm, Segmented } from 'antd';
 import dayjs from 'dayjs';
 import { formatearMoneda } from '../../../shared/moneda';
 import { describirCuenta } from '../../../shared/cuit';
@@ -20,6 +20,8 @@ interface ComandaCardProps {
   nueva?: boolean;
   onAvanzar: () => void;
   onCancelar: () => void;
+  /** En preparación → vuelve a Pendiente (se tomó por error). Solo se muestra si está en preparación. */
+  onRetroceder?: () => void;
   onCambiarPago?: (pagado: EstadoPago) => void;
   /** Ya pagada: reabre el cobro para corregir el medio o los datos de la cuenta. */
   onCorregirCobro?: () => void;
@@ -51,6 +53,7 @@ export function ComandaCard({
   nueva,
   onAvanzar,
   onCancelar,
+  onRetroceder,
   onCambiarPago,
   onCorregirCobro,
 }: ComandaCardProps) {
@@ -164,16 +167,39 @@ export function ComandaCard({
               >
                 {pendiente ? 'Tomar pedido' : 'Marcar servido'}
               </Button>
-              <Button
-                className="comanda__cancelar"
-                type="text"
-                icon={<CloseOutlined />}
-                disabled={procesando}
-                onClick={onCancelar}
-                aria-label={`Cancelar el pedido ${comanda.id_pedido}`}
-              >
-                <span className="comanda__cancelar-texto">Cancelar</span>
-              </Button>
+              {/* Acciones secundarias juntas: si no entran al lado de la principal, pasan enteras a la línea de abajo. */}
+              <div className="comanda__secundarias">
+                {!pendiente && onRetroceder && (
+                  <Popconfirm
+                    title="¿Volver a Pendiente?"
+                    description="Vuelve a la primera columna, como si no se hubiera tomado."
+                    okText="Volver"
+                    cancelText="No"
+                    placement="topRight"
+                    onConfirm={onRetroceder}
+                  >
+                    <Button
+                      className="comanda__retroceder"
+                      type="text"
+                      icon={<UndoOutlined />}
+                      disabled={procesando}
+                      aria-label={`Devolver a pendiente el pedido ${comanda.id_pedido}`}
+                    >
+                      <span className="comanda__cancelar-texto">Volver</span>
+                    </Button>
+                  </Popconfirm>
+                )}
+                <Button
+                  className="comanda__cancelar"
+                  type="text"
+                  icon={<CloseOutlined />}
+                  disabled={procesando}
+                  onClick={onCancelar}
+                  aria-label={`Cancelar el pedido ${comanda.id_pedido}`}
+                >
+                  <span className="comanda__cancelar-texto">Cancelar</span>
+                </Button>
+              </div>
             </div>
           ))}
       </div>

@@ -55,8 +55,10 @@ export function LoginView() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: '#f5f5f5' }}>
-      <Card style={{ width: '100%', maxWidth: 380 }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'var(--marca-verde-suave)' }}>
+      <Card style={{ width: '100%', maxWidth: 380, overflow: 'hidden' }} styles={{ body: { padding: 0 } }}>
+        <div className="franja-marca" />
+        <div style={{ padding: 24 }}>
         <Typography.Title level={3} style={{ textAlign: 'center' }}>
           Kitch · Personal
         </Typography.Title>
@@ -79,6 +81,7 @@ export function LoginView() {
             Ingresar
           </Button>
         </Form>
+        </div>
       </Card>
     </div>
   );

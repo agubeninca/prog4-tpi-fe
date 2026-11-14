@@ -9,6 +9,7 @@ import { formatearDni } from '../../../shared/dni';
 import { formatearMoneda } from '../../../shared/moneda';
 import { ElegirMedioPagoModal } from '../components/ElegirMedioPagoModal';
 import { EstadoPagoTag } from '../components/EstadoPagoTag';
+import { HistorialEstados } from '../components/HistorialEstados';
 import { EstadoPedidoTag } from '../components/EstadoPedidoTag';
 import {
   ETIQUETA_ESTADO,
@@ -24,6 +25,7 @@ import {
   type EstadoPedido,
   type Pedido,
 } from '../services/pedido.service';
+import { MARCA } from '../../../theme/marca';
 
 type Rango = [Dayjs | null, Dayjs | null] | null;
 type FiltroEstado = 'TODOS' | EstadoPedido;
@@ -208,7 +210,7 @@ export function PedidoListView() {
               title="Total vendido (servidos)"
               value={formatearMoneda(metricas.vendido.toString())}
               loading={primeraCarga}
-              styles={{ content: { color: '#389e0d', whiteSpace: 'nowrap' } }}
+              styles={{ content: { color: MARCA.verde, whiteSpace: 'nowrap' } }}
             />
           </Card>
         </Col>
@@ -256,6 +258,10 @@ export function PedidoListView() {
               {pedido.motivo_cancelacion && (
                 <Typography.Text type="danger">Motivo de cancelación: {pedido.motivo_cancelacion}</Typography.Text>
               )}
+              <Typography.Text strong style={{ marginTop: 12 }}>
+                Historial de estados
+              </Typography.Text>
+              <HistorialEstados idPedido={pedido.id_pedido} />
             </Flex>
           ),
         }}

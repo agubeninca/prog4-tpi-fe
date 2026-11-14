@@ -1,6 +1,8 @@
 import {
   AppstoreOutlined,
+  BarChartOutlined,
   BugOutlined,
+  DollarOutlined,
   DashboardOutlined,
   FireOutlined,
   FormOutlined,
@@ -12,25 +14,58 @@ import {
   StarOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { Layout, Menu } from 'antd';
-import { useState } from 'react';
+import { Layout, Menu, type MenuProps } from 'antd';
+import { useState, type ReactNode } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { SesionUsuario } from '../shared/SesionUsuario';
 import './layouts.css';
 
-const menuItems = [
-  { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">Resumen</Link> },
-  { key: '/admin/pedidos', icon: <ShoppingCartOutlined />, label: <Link to="/admin/pedidos">Pedidos</Link> },
-  { key: '/admin/categorias', icon: <AppstoreOutlined />, label: <Link to="/admin/categorias">Categorías</Link> },
-  { key: '/admin/productos', icon: <ShoppingOutlined />, label: <Link to="/admin/productos">Productos</Link> },
-  { key: '/admin/mesas', icon: <QrcodeOutlined />, label: <Link to="/admin/mesas">Mesas</Link> },
-  { key: '/admin/mozos', icon: <SmileOutlined />, label: <Link to="/admin/mozos">Mozos</Link> },
-  { key: '/admin/clientes', icon: <TeamOutlined />, label: <Link to="/admin/clientes">Clientes</Link> },
-  { key: '/admin/reviews', icon: <StarOutlined />, label: <Link to="/admin/reviews">Reviews</Link> },
-  { key: '/admin/usuarios', icon: <IdcardOutlined />, label: <Link to="/admin/usuarios">Usuarios</Link> },
-  { key: '/admin/errores', icon: <BugOutlined />, label: <Link to="/admin/errores">Errores</Link> },
-  { key: '/cocina/manuales', icon: <FormOutlined />, label: <Link to="/cocina/manuales">Comandas manuales</Link> },
-  { key: '/cocina', icon: <FireOutlined />, label: <Link to="/cocina">Panel de comandas</Link> },
+const item = (ruta: string, icono: ReactNode, texto: string) => ({
+  key: ruta,
+  icon: icono,
+  label: <Link to={ruta}>{texto}</Link>,
+});
+
+// Agrupado por tipo de tarea: lo de todos los días arriba, la administración del sistema al final.
+const menuItems: MenuProps['items'] = [
+  item('/admin', <DashboardOutlined />, 'Resumen'),
+  item('/admin/estadisticas', <BarChartOutlined />, 'Estadísticas'),
+  {
+    type: 'group',
+    label: 'Operación',
+    children: [
+      item('/admin/pedidos', <ShoppingCartOutlined />, 'Pedidos'),
+      item('/cocina', <FireOutlined />, 'Panel de comandas'),
+      item('/cocina/manuales', <FormOutlined />, 'Comandas manuales'),
+      item('/cocina/caja', <DollarOutlined />, 'Cierre de caja'),
+    ],
+  },
+  {
+    type: 'group',
+    label: 'Catálogo',
+    children: [
+      item('/admin/productos', <ShoppingOutlined />, 'Productos'),
+      item('/admin/categorias', <AppstoreOutlined />, 'Categorías'),
+      item('/admin/mesas', <QrcodeOutlined />, 'Mesas'),
+      item('/admin/mozos', <SmileOutlined />, 'Mozos'),
+    ],
+  },
+  {
+    type: 'group',
+    label: 'Clientes',
+    children: [
+      item('/admin/clientes', <TeamOutlined />, 'Clientes'),
+      item('/admin/reviews', <StarOutlined />, 'Reviews'),
+    ],
+  },
+  {
+    type: 'group',
+    label: 'Sistema',
+    children: [
+      item('/admin/usuarios', <IdcardOutlined />, 'Usuarios'),
+      item('/admin/errores', <BugOutlined />, 'Errores'),
+    ],
+  },
 ];
 
 export function AdminLayout() {

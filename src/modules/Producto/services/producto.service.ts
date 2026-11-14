@@ -28,6 +28,10 @@ export const productoService = {
   remove: (id: number) => api.delete(`/productos/${id}`),
   pausar: (id: number, estado_pausado: boolean) =>
     api.patch<Producto>(`/productos/${id}/pausa`, { estado_pausado }).then((res) => res.data),
+  /** Orden de los productos de una categoría: ids de TODOS sus productos en el orden en que tienen que quedar. */
+  ordenar: (id_categoria: number, ids: number[]) =>
+    api.put<Producto[]>('/productos/orden', { id_categoria, ids }).then((res) => res.data),
+  eliminarImagen: (id: number) => api.delete<Producto>(`/productos/${id}/imagen`).then((res) => res.data),
   subirImagen: (id: number, archivo: File) => {
     const formData = new FormData();
     formData.append('imagen', archivo);

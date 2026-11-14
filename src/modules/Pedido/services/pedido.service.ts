@@ -142,7 +142,19 @@ export interface RegistroComandaManual {
 /** El backend devuelve como máximo esta cantidad de pedidos por consulta. */
 export const LIMITE_PEDIDOS = 500;
 
+/** Un cambio de estado del pedido (el alta tiene `estado_anterior` null). */
+export interface CambioEstado {
+  id_historial: number;
+  estado_anterior: EstadoPedido | null;
+  estado_nuevo: EstadoPedido;
+  /** null = lo hizo el cliente (alta por QR). */
+  usuario: { id_usuario: number; nombre: string; nombre_usuario: string } | null;
+  fecha_hora: string;
+  motivo: string | null;
+}
+
 export const pedidoService = {
+  getHistorial: (id: number) => api.get<CambioEstado[]>(`/pedidos/${id}/historial`).then((res) => res.data),
   getAll: (filtro: FiltroPedidos = {}) => api.get<Pedido[]>('/pedidos', { params: filtro }).then((res) => res.data),
   cambiarEstado: (id: number, estado: EstadoPedido, motivo_cancelacion?: string) =>
     api.patch<Pedido>(`/pedidos/${id}/estado`, { estado, motivo_cancelacion }).then((res) => res.data),

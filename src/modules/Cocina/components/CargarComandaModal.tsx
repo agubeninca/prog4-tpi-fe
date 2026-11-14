@@ -342,7 +342,8 @@ export function CargarComandaModal({ onClose, onCreada }: CargarComandaModalProp
             </Flex>
           )}
 
-          <Form.Item name="observacion" label="Observación (opcional)" style={{ marginTop: 16, marginBottom: 0 }}>
+          {/* Con margen abajo: el contador de caracteres (showCount) se dibuja debajo del campo y, sin lugar, queda pisado por el footer. */}
+          <Form.Item name="observacion" label="Observación (opcional)" style={{ marginTop: 16, marginBottom: 32 }}>
             <Input.TextArea maxLength={255} showCount rows={2} placeholder="Ej.: cliente sin celular, pidió en la barra" />
           </Form.Item>
         </Form>

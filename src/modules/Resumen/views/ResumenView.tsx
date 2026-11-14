@@ -8,6 +8,7 @@ import { EstadoPedidoTag } from '../../Pedido/components/EstadoPedidoTag';
 import { EstadoStatCard } from '../components/EstadoStatCard';
 import { pedidoService, type DetallePedido, type EstadoPedido, type Pedido } from '../../Pedido/services/pedido.service';
 import { reporteService, type VentasDelDia } from '../services/reporte.service';
+import { MARCA } from '../../../theme/marca';
 
 /** Orden del ciclo de vida del pedido. */
 const ORDEN_ESTADOS: EstadoPedido[] = ['PENDIENTE', 'EN_PREPARACION', 'SERVIDO', 'CANCELADO'];
@@ -62,12 +63,12 @@ export function ResumenView() {
       {/* Las cards de cada fila se estiran a la misma altura (align="stretch" + height 100%). */}
       <Row gutter={[16, 16]} align="stretch" style={{ marginBottom: 24 }}>
         <Col xs={24} lg={8}>
-          <Card style={{ height: '100%', borderTop: '3px solid #389e0d' }}>
+          <Card style={{ height: '100%', borderTop: `3px solid ${MARCA.verde}` }}>
             <Statistic
               title={esHoy ? 'Vendido hoy' : `Vendido el ${fecha.format('DD/MM/YYYY')}`}
               value={ventas ? formatearMoneda(ventas.total) : '—'}
               loading={loading && !ventas}
-              styles={{ content: { color: '#389e0d', fontSize: 32 } }}
+              styles={{ content: { color: MARCA.verde, fontSize: 32 } }}
             />
             <Typography.Text type="secondary">Suma de los pedidos servidos</Typography.Text>
           </Card>

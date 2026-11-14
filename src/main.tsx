@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { ConfigProvider } from 'antd';
+import { temaAntd } from './theme/marca';
 import esES from 'antd/locale/es_ES';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
@@ -15,15 +16,18 @@ import { InicioView } from './modules/Inicio/views/InicioView';
 import { RequiereIdentificacion } from './modules/ClienteMesa/components/RequiereIdentificacion';
 import {
   AdminLayout,
+  CajaView,
   CarritoView,
   ClienteListView,
   CategoriaListView,
   ErrorListView,
+  EstadisticasView,
   CocinaLayout,
   IdentificacionView,
   LoginView,
   MenuView,
   MesaListView,
+  MisPedidosView,
   MozoListView,
   PedidoListView,
   PanelComandasView,
@@ -34,6 +38,7 @@ import {
   ReviewListView,
   UsuarioListView,
 } from './vistas';
+import './theme/marca.css';
 import './index.css';
 
 dayjs.extend(relativeTime);
@@ -45,7 +50,7 @@ capturarErroresGlobales();
 const root = document.getElementById('root')!;
 
 ReactDOM.createRoot(root).render(
-  <ConfigProvider locale={esES}>
+  <ConfigProvider locale={esES} theme={temaAntd}>
     <ErrorBoundary>
       <BrowserRouter>
         <Cargando>
@@ -60,6 +65,7 @@ ReactDOM.createRoot(root).render(
                 <Route path="menu" element={<MenuView />} />
                 <Route path="carrito" element={<CarritoView />} />
                 <Route path="pedido/:id" element={<PedidoEstadoView />} />
+                <Route path="mis-pedidos" element={<MisPedidosView />} />
               </Route>
             </Route>
 
@@ -81,6 +87,14 @@ ReactDOM.createRoot(root).render(
                   </RutaProtegida>
                 }
               />
+              <Route
+                path="caja"
+                element={
+                  <RutaProtegida roles={['ADMIN', 'BARRA']}>
+                    <CajaView />
+                  </RutaProtegida>
+                }
+              />
             </Route>
 
             {/* Panel de Administración */}
@@ -98,6 +112,7 @@ ReactDOM.createRoot(root).render(
               <Route path="mesas" element={<MesaListView />} />
               <Route path="mozos" element={<MozoListView />} />
               <Route path="pedidos" element={<PedidoListView />} />
+              <Route path="estadisticas" element={<EstadisticasView />} />
               <Route path="clientes" element={<ClienteListView />} />
               <Route path="reviews" element={<ReviewListView />} />
               <Route path="usuarios" element={<UsuarioListView />} />

@@ -5,7 +5,9 @@ const { Title, Paragraph } = Typography;
 
 export function InicioView() {
   return (
-    <div style={{ maxWidth: 480, margin: '64px auto', padding: 16, textAlign: 'center' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--marca-verde-suave)' }}>
+      <div className="franja-marca" />
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '64px 16px', textAlign: 'center' }}>
       <Title level={2}>Kitch</Title>
       <Paragraph>Menú digital y pedidos desde la mesa.</Paragraph>
       <Paragraph type="secondary">
@@ -23,6 +25,7 @@ export function InicioView() {
           </Button>
         </Link>
       </Space>
+      </div>
     </div>
   );
 }

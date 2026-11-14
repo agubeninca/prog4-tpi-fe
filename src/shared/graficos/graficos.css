@@ -1,0 +1,77 @@
+/* Gráficos de barras hechos a mano (sin librería): una sola serie, en el verde de la marca. */
+.grafico__eje {
+  stroke: #e3e6ea;
+  stroke-width: 1;
+}
+.grafico__texto {
+  fill: #6b7280;
+  font-size: 11px;
+}
+.grafico__barra {
+  fill: var(--marca-verde);
+  transition: fill 0.12s;
+}
+.grafico__columna:hover .grafico__barra,
+.grafico__columna:focus .grafico__barra {
+  fill: var(--marca-rojo);
+}
+.grafico__columna {
+  outline: none;
+}
+
+.grafico-filas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.grafico-fila {
+  display: grid;
+  grid-template-columns: minmax(90px, 30%) 1fr minmax(110px, 38%);
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.grafico-fila__nombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.grafico-fila__pista {
+  height: 12px;
+  background: var(--marca-verde-suave);
+  border-radius: 4px;
+}
+.grafico-fila__barra {
+  height: 100%;
+  background: var(--marca-verde);
+  border-radius: 0 4px 4px 0;
+  min-width: 2px;
+}
+.grafico-fila:hover .grafico-fila__barra {
+  background: var(--marca-rojo);
+}
+.grafico-fila__valor {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Columnas: en pantallas angostas se mantiene un ancho mínimo legible y se desplaza en horizontal. */
+.grafico-scroll {
+  overflow-x: auto;
+}
+.grafico-scroll > svg {
+  min-width: 720px;
+}
+
+/* Ranking en pantallas angostas: nombre y valor arriba, la barra completa debajo. */
+@media (max-width: 600px) {
+  .grafico-fila {
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
+  }
+  .grafico-fila__pista {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}

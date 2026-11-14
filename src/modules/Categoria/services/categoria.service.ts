@@ -20,4 +20,6 @@ export const categoriaService = {
   create: (data: CategoriaInput) => api.post<Categoria>('/categorias', data).then((res) => res.data),
   update: (id: number, data: CategoriaInput) => api.patch<Categoria>(`/categorias/${id}`, data).then((res) => res.data),
   remove: (id: number) => api.delete(`/categorias/${id}`),
+  /** Orden del menú: ids de TODAS las categorías en el orden en que tienen que quedar. */
+  ordenar: (ids: number[]) => api.put<Categoria[]>('/categorias/orden', { ids }).then((res) => res.data),
 };

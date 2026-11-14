@@ -174,6 +174,8 @@ export function PanelComandasView() {
       if (estado === 'CANCELADO') {
         message.success(`Pedido #${idPedido} cancelado`);
         setACancelar(null);
+      } else if (estado === 'PENDIENTE') {
+        message.success(`Pedido #${idPedido} volvió a Pendiente`);
       }
     } catch (err) {
       message.error(getErrorMessage(err));
@@ -287,6 +289,7 @@ export function PanelComandasView() {
                       nueva={recientes.has(comanda.id_pedido)}
                       onAvanzar={() => cambiarEstado(comanda.id_pedido, SIGUIENTE_ESTADO[comanda.estado]!)}
                       onCancelar={() => setACancelar(comanda.id_pedido)}
+                      onRetroceder={() => cambiarEstado(comanda.id_pedido, 'PENDIENTE')}
                       onCambiarPago={(pagado) => pedirCambioPago(comanda, pagado)}
                       onCorregirCobro={() => setACobrar(comanda)}
                     />

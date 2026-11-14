@@ -1,5 +1,5 @@
 import { api } from '../../../shared/api';
-import type { Pedido } from '../../Pedido/services/pedido.service';
+import type { EstadoPedido, Pedido } from '../../Pedido/services/pedido.service';
 import type { Review } from '../../Review/services/review.service';
 
 export interface MesaPublica {
@@ -45,6 +45,16 @@ export interface PedidoCliente extends Pedido {
   review: Review[];
 }
 
+/** Un pedido anterior del cliente, para "Mis pedidos" y "Pedir de nuevo". */
+export interface PedidoReciente {
+  id_pedido: number;
+  fecha_hora_ingreso: string;
+  estado: EstadoPedido;
+  precio_total: string;
+  mesa: { numero_mesa: number };
+  detalle_pedido: { cantidad: number; producto: { id_producto: number; nombre: string } }[];
+}
+
 export interface NuevoPedido {
   hash_codigo_qr: string;
   dni: string;
@@ -65,6 +75,8 @@ export const clienteMesaService = {
   consultarDni: (dni: string) => api.get<ConsultaDni>(`/clientes/consulta/${dni}`).then((res) => res.data),
   identificar: (datos: Identificacion) =>
     api.post<ClienteSesion & { registrado: boolean }>('/clientes/identificar', datos).then((res) => res.data),
+  getMisPedidos: (dni: string) =>
+    api.get<PedidoReciente[]>('/pedidos/mios', { params: { dni } }).then((res) => res.data),
   getMenu: () => api.get<CategoriaMenu[]>('/menu').then((res) => res.data),
   crearPedido: (pedido: NuevoPedido) => api.post<Pedido>('/pedidos', pedido).then((res) => res.data),
   getPedido: (id: number, dni: string) =>

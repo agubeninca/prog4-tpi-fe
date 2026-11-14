@@ -1,10 +1,13 @@
 import { Layout, Typography } from 'antd';
 import { Outlet } from 'react-router';
+import { useSeguimientoPedidos } from '../modules/ClienteMesa/hooks/useSeguimientoPedidos';
 import { useSesionClienteStore } from '../stores/sesionCliente.store';
 import './layouts.css';
 
 export function ClienteLayout() {
   const mesa = useSesionClienteStore((state) => state.mesa);
+  // Avisa cuando un pedido de la sesión cambia de estado, estés en la pantalla que estés.
+  useSeguimientoPedidos();
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
