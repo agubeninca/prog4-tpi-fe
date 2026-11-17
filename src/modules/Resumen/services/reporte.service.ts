@@ -14,14 +14,16 @@ export const reporteService = {
     api.get<VentasDelDia>('/reportes/ventas-dia', { params: { fecha } }).then((res) => res.data),
 };
 
-export interface CierreDeCaja {
-  fecha: string;
+/** Lo que muestra un cierre de caja (del día o de un turno). */
+export interface ResumenCaja {
   cobrado: {
     total: string;
     cantidad: number;
     por_medio: { medio: MedioPago | 'SIN_MEDIO'; cantidad: number; total: string }[];
     efectivo_en_caja: string;
     cuentas: { nombre: string; cuit: string | null; cantidad: number; total: string }[];
+    /** Los pedidos por QR aparecen como "Sin mozo (QR)". */
+    por_mozo: { nombre: string; cantidad: number; total: string }[];
   };
   sin_cobrar: {
     cantidad: number;
@@ -36,6 +38,11 @@ export interface CierreDeCaja {
   };
   en_curso: { cantidad: number; total: string };
   cancelados: { cantidad: number; total: string };
+}
+
+/** Cierre de caja de un día (por fecha de cobro). */
+export interface CierreDeCaja extends ResumenCaja {
+  fecha: string;
 }
 
 export type DiasEstadisticas = 7 | 30 | 90;

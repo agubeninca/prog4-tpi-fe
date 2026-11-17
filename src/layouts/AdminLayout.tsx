@@ -37,7 +37,7 @@ const menuItems: MenuProps['items'] = [
       item('/admin/pedidos', <ShoppingCartOutlined />, 'Pedidos'),
       item('/cocina', <FireOutlined />, 'Panel de comandas'),
       item('/cocina/manuales', <FormOutlined />, 'Comandas manuales'),
-      item('/cocina/caja', <DollarOutlined />, 'Cierre de caja'),
+      item('/cocina/caja', <DollarOutlined />, 'Caja y turnos'),
     ],
   },
   {

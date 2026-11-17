@@ -11,6 +11,7 @@ import { CancelarPedidoModal } from '../../Pedido/components/CancelarPedidoModal
 import { ElegirMedioPagoModal } from '../../Pedido/components/ElegirMedioPagoModal';
 import { medioEnFrase, pedidoService, type DatosCobro, type EstadoPago, type EstadoPedido } from '../../Pedido/services/pedido.service';
 import { describirCuenta } from '../../../shared/cuit';
+import { AvisoSinTurno } from '../../Caja/components/AvisoSinTurno';
 import { CargarComandaModal } from '../components/CargarComandaModal';
 import { ComandaCard } from '../components/ComandaCard';
 import { aComanda, COLECCION_COMANDAS, type Comanda } from '../comanda';
@@ -256,6 +257,8 @@ export function PanelComandasView() {
           </Button>
         )}
       </div>
+
+      {!soloLectura && <AvisoSinTurno />}
 
       <div
         className={`panel-comandas__carriles${columnas.length === 1 ? ' panel-comandas__carriles--uno' : ''}${columnas.length === 3 ? ' panel-comandas__carriles--tres' : ''}`}
